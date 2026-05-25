@@ -1,0 +1,15 @@
+<a class="item-card" href="/items/{{ item.id }}">
+  {% if item.thumbnail_url %}
+    <img class="item-card__thumb" src="{{ item.thumbnail_url }}" alt="" loading="lazy">
+  {% else %}
+    <div class="item-card__thumb item-card__thumb--placeholder"></div>
+  {% endif %}
+  <div class="item-card__body">
+    <div class="item-card__title">{{ item.title }}</div>
+    <div class="item-card__meta">
+      <span class="item-card__price">{{ formatPrice(item.price, item.price_text) }}</span>
+      {% if item.location %}<span class="item-card__location">{{ item.location }}</span>{% endif %}
+    </div>
+    <div class="item-card__source">{{ item.source_name }} · {{ relativeTime(item.first_seen_at) }}</div>
+  </div>
+</a>

@@ -1,0 +1,9 @@
+{% extends "layouts/base.njk" %}
+{% block title %}Fehler{% endblock %}
+{% block content %}
+<div class="error-page">
+  <h1>Fehler</h1>
+  <p>{{ error.message }}</p>
+  <a class="btn" href="/">Zum Dashboard</a>
+</div>
+{% endblock %}

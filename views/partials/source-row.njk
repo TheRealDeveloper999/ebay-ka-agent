@@ -1,0 +1,45 @@
+<tr id="source-row-{{ source.id }}">
+  <td>
+    <strong>{{ source.name }}</strong>
+    {% if source.last_error %}
+      <div class="source-error">{{ source.last_error }}</div>
+    {% endif %}
+  </td>
+  <td>
+    <a href="{{ source.url }}" target="_blank" class="url-truncate">{{ source.url }}</a>
+  </td>
+  <td>{{ source.item_count }}</td>
+  <td>{{ relativeTime(source.last_scraped_at) }}</td>
+  <td>{{ source.interval }} min</td>
+  <td>
+    <button class="toggle-btn {{ 'active' if source.active }}"
+            hx-patch="/sources/{{ source.id }}/toggle"
+            hx-target="#source-row-{{ source.id }}"
+            hx-swap="outerHTML">
+      {{ 'Aktiv' if source.active else 'Inaktiv' }}
+    </button>
+  </td>
+  <td class="actions">
+    <button class="btn btn-sm"
+            hx-post="/sources/{{ source.id }}/scrape"
+            hx-target="#scrape-status-{{ source.id }}"
+            hx-swap="innerHTML"
+            hx-indicator="#scrape-spinner-{{ source.id }}">
+      Scrapen
+    </button>
+    <span id="scrape-spinner-{{ source.id }}" class="htmx-indicator spinner"></span>
+    <a class="btn btn-sm" href="/sources/{{ source.id }}/edit">Bearbeiten</a>
+    <button class="btn btn-sm btn-danger"
+            hx-delete="/sources/{{ source.id }}"
+            hx-target="#source-row-{{ source.id }}"
+            hx-swap="outerHTML swap:300ms"
+            hx-confirm="Quelle '{{ source.name }}' wirklich löschen?">
+      Löschen
+    </button>
+  </td>
+</tr>
+<tr>
+  <td colspan="7">
+    <div id="scrape-status-{{ source.id }}" class="scrape-status-cell"></div>
+  </td>
+</tr>

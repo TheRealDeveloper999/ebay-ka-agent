@@ -1,0 +1,120 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}{{ item.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="{{ 'removed' if item.removed_at }}">{{ item.title }}</h1>
+  <a class="btn" href="/sources">← Quellen</a>
+</div>
+
+{% if item.removed_at %}
+  <div class="flash flash-warning">Diese Anzeige wurde am {{ formatDate(item.removed_at) }} nicht mehr gefunden.</div>
+{% endif %}
+
+<div class="item-detail-grid">
+  <div class="item-detail-main">
+    {% if item.image_urls_parsed.length %}
+      <div class="gallery">
+        <img id="gallery-main" class="gallery__main" src="{{ item.image_urls_parsed[0] }}" alt="{{ item.title }}">
+        {% if item.image_urls_parsed.length > 1 %}
+          <div class="gallery__thumbs">
+            {% for img in item.image_urls_parsed %}
+              <img class="gallery__thumb {{ 'active' if loop.first }}" src="{{ img }}" alt="" loading="lazy"
+                   onclick="document.getElementById('gallery-main').src=this.src; document.querySelectorAll('.gallery__thumb').forEach(t=>t.classList.remove('active')); this.classList.add('active')">
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="item-meta-box">
+      <div class="item-meta-row">
+        <span class="meta-label">Preis</span>
+        <span class="meta-value price-value">{{ formatPrice(item.price, item.price_text) }}</span>
+      </div>
+      {% if item.location %}
+        <div class="item-meta-row">
+          <span class="meta-label">Ort</span>
+          <span class="meta-value">{{ item.location }}</span>
+        </div>
+      {% endif %}
+      {% if item.seller_name %}
+        <div class="item-meta-row">
+          <span class="meta-label">Anbieter</span>
+          <span class="meta-value">
+            {% if item.seller_url %}
+              <a href="{{ item.seller_url }}" target="_blank">{{ item.seller_name }}</a>
+            {% else %}
+              {{ item.seller_name }}
+            {% endif %}
+          </span>
+        </div>
+      {% endif %}
+      <div class="item-meta-row">
+        <span class="meta-label">Quelle</span>
+        <span class="meta-value"><a href="/sources">{{ item.source_name }}</a></span>
+      </div>
+      <div class="item-meta-row">
+        <span class="meta-label">Erstmals gesehen</span>
+        <span class="meta-value">{{ formatDate(item.first_seen_at) }}</span>
+      </div>
+      <div class="item-meta-row">
+        <span class="meta-label">Zuletzt gesehen</span>
+        <span class="meta-value">{{ formatDate(item.last_seen_at) }}</span>
+      </div>
+    </div>
+
+    {% if item.description %}
+      <div class="description-box">
+        <h3>Beschreibung</h3>
+        <pre class="description-text">{{ item.description }}</pre>
+      </div>
+    {% endif %}
+
+    <div class="item-actions">
+      <a class="btn btn-primary" href="{{ item.url }}" target="_blank">Auf kleinanzeigen.de öffnen ↗</a>
+    </div>
+  </div>
+
+  <aside class="item-detail-side">
+    <h2>Änderungsverlauf</h2>
+    {% if changes.length == 0 %}
+      <p class="empty-state">Keine Änderungen aufgezeichnet.</p>
+    {% else %}
+      <div class="timeline">
+        {% for ch in changes %}
+          <div class="timeline-entry">
+            <div class="timeline-dot {{ changeTypeBadgeClass(ch.change_type) }}"></div>
+            <div class="timeline-content">
+              <span class="badge {{ changeTypeBadgeClass(ch.change_type) }}">{{ changeTypeLabel(ch.change_type) }}</span>
+              {% if ch.old_value %}
+                <div class="change-diff">
+                  <span class="diff-old">{{ ch.old_value }}</span>
+                  <span class="diff-arrow">→</span>
+                  <span class="diff-new">{{ ch.new_value }}</span>
+                </div>
+              {% endif %}
+              <time class="timeline-time">{{ formatDate(ch.detected_at) }}</time>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if snapshots.length > 0 %}
+      <details class="snapshots-detail">
+        <summary>{{ snapshots.length }} Snapshots anzeigen</summary>
+        <div class="snapshot-list">
+          {% for snap in snapshots %}
+            <div class="snapshot-entry">
+              <time>{{ formatDate(snap.scraped_at) }}</time>
+              <span>{{ formatPrice(snap.price, snap.price_text) }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </details>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

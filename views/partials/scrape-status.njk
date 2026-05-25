@@ -1,0 +1,7 @@
+{% if error %}
+  <span class="scrape-result scrape-result--error">Fehler: {{ error }}</span>
+{% elif stats %}
+  <span class="scrape-result scrape-result--ok">
+    Fertig — {{ stats.newItems }} neu, {{ stats.changedItems }} geändert, {{ stats.removedItems }} entfernt
+  </span>
+{% endif %}

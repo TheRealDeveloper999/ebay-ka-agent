@@ -1,0 +1,22 @@
+<div id="stats-cards" class="stats-grid"
+     hx-get="/dashboard/stats"
+     hx-trigger="every 30s"
+     hx-target="#stats-cards"
+     hx-swap="outerHTML">
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-label">Aktive Anzeigen</div>
+  </div>
+  <div class="stat-card stat-card--new">
+    <div class="stat-value">{{ stats.newToday }}</div>
+    <div class="stat-label">Neu heute</div>
+  </div>
+  <div class="stat-card stat-card--changed">
+    <div class="stat-value">{{ stats.changedToday }}</div>
+    <div class="stat-label">Geändert heute</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.activeSources }}</div>
+    <div class="stat-label">Aktive Quellen</div>
+  </div>
+</div>
