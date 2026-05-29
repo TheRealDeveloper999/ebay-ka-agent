@@ -4,10 +4,16 @@
   "description": "eBay Kleinanzeigen listing monitor",
   "main": "src/server.js",
   "type": "commonjs",
+  "engines": {
+    "node": "21.6.1"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "NODE_ENV=development node --watch src/server.js",
-    "scrape": "node src/scraper/cli.js"
+    "scrape": "node src/scraper/cli.js",
+    "check:syntax": "find src -name '*.js' | xargs node --check && node --check public/js/app.js",
+    "audit": "npm audit --omit=dev",
+    "test": "echo 'No tests yet' && exit 0"
   },
   "dependencies": {
     "better-sqlite3": "^9.6.0",
