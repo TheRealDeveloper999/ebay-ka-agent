@@ -56,12 +56,16 @@ app.use((req, res) => {
   res.status(404).render('404.njk', { page: '' });
 });
 
+const escHtml = s => String(s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err);
   const isHtmx = req.headers['hx-request'];
   if (isHtmx) {
-    return res.status(500).send(`<p class="error">Fehler: ${err.message}</p>`);
+    return res.status(500).send(`<p class="error">Fehler: ${escHtml(err.message)}</p>`);
   }
   res.status(500).render('error.njk', { error: err, page: '' });
 });
