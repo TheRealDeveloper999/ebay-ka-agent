@@ -24,7 +24,13 @@ async function scrapeListingPage(page, url, filters = {}) {
     }
 
     // Wait for listing cards
-    await page.waitForSelector('article.aditem, li[data-adid]', { timeout: 15000 }).catch(() => null);
+    const found = await page.waitForSelector('article.aditem, li[data-adid]', { timeout: 15000 }).catch(() => null);
+    if (!found) {
+      // Page 1 missing elements = real problem (bot-block, CAPTCHA, broken URL)
+      if (pageNum === 0) throw new Error('Keine Anzeigen-Elemente auf Seite 1 gefunden — Bot-Block, CAPTCHA oder Seitenstruktur geändert?');
+      // Later pages: simply no more results — stop pagination
+      break;
+    }
 
     const pageCards = await page.evaluate(() => {
       const results = [];

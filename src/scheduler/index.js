@@ -3,6 +3,7 @@
 const cron = require('node-cron');
 const { getDb } = require('../db');
 const { scrapeSource } = require('../scraper');
+const { acquire, ping, complete, PING_INTERVAL_MS } = require('../scraper/locks');
 
 const MIN_INTERVAL = parseInt(process.env.MIN_SCRAPE_INTERVAL_MINUTES || '5', 10);
 const jobs = new Map();
@@ -16,12 +17,21 @@ function addJob(source) {
   if (jobs.has(source.id)) removeJob(source.id);
   const expr = buildCronExpr(source.interval);
   const task = cron.schedule(expr, async () => {
+    if (!acquire(source.id)) {
+      console.log(`[scheduler] source ${source.id} scrape still running, skipping tick`);
+      return;
+    }
     console.log(`[scheduler] Scraping source ${source.id} (${source.name})`);
+    const pingInterval = setInterval(() => ping(source.id), PING_INTERVAL_MS);
     try {
       const stats = await scrapeSource(source.id);
+      complete(source.id, stats, null);
       console.log(`[scheduler] Source ${source.id} done:`, stats);
     } catch (err) {
+      complete(source.id, null, err.message);
       console.error(`[scheduler] Source ${source.id} error:`, err.message);
+    } finally {
+      clearInterval(pingInterval);
     }
   });
   jobs.set(source.id, task);

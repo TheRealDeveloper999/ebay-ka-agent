@@ -4,6 +4,7 @@ const express = require('express');
 const { getDb } = require('../db');
 const { scrapeSource } = require('../scraper');
 const { restartJob, removeJob, addJob } = require('../scheduler');
+const { acquire, ping, complete, getJob, clear, PING_INTERVAL_MS } = require('../scraper/locks');
 const router = express.Router();
 
 function validateSource(body) {
@@ -101,17 +102,39 @@ router.delete('/sources/:id', (req, res) => {
   res.status(200).send('');
 });
 
-router.post('/sources/:id/scrape', async (req, res) => {
-  try {
-    const stats = await scrapeSource(parseInt(req.params.id, 10));
-    const db = getDb();
-    const source = db.prepare('SELECT * FROM sources WHERE id = ?').get(req.params.id);
-    res.render('partials/scrape-status.njk', { source, stats, error: null });
-  } catch (err) {
-    const db = getDb();
-    const source = db.prepare('SELECT * FROM sources WHERE id = ?').get(req.params.id);
-    res.render('partials/scrape-status.njk', { source, stats: null, error: err.message });
+router.post('/sources/:id/scrape', (req, res) => {
+  const sourceId = parseInt(req.params.id, 10);
+  const db = getDb();
+  const source = db.prepare('SELECT * FROM sources WHERE id = ?').get(sourceId);
+  if (!source) return res.status(404).send('Not found');
+
+  if (!acquire(sourceId)) {
+    // Already running — return current status without starting another
+    return res.render('partials/scrape-status.njk', { source, stats: null, error: null, running: true });
   }
+
+  const pingInterval = setInterval(() => ping(sourceId), PING_INTERVAL_MS);
+  scrapeSource(sourceId)
+    .then(stats => complete(sourceId, stats, null))
+    .catch(err  => complete(sourceId, null, err.message))
+    .finally(()  => clearInterval(pingInterval));
+
+  res.render('partials/scrape-status.njk', { source, stats: null, error: null, running: true });
+});
+
+router.get('/sources/:id/scrape-status', (req, res) => {
+  const sourceId = parseInt(req.params.id, 10);
+  const db = getDb();
+  const source = db.prepare('SELECT * FROM sources WHERE id = ?').get(sourceId);
+  if (!source) return res.status(404).send('Not found');
+
+  const job = getJob(sourceId);
+  if (!job || !job.done) {
+    return res.render('partials/scrape-status.njk', { source, stats: null, error: null, running: true });
+  }
+  const { stats, error } = job;
+  clear(sourceId);
+  res.render('partials/scrape-status.njk', { source, stats, error, running: false });
 });
 
 module.exports = router;

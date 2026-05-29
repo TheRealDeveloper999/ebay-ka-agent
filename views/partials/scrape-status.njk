@@ -1,4 +1,12 @@
-{% if error %}
+{% if running %}
+  <span class="scrape-result scrape-result--running"
+        hx-get="/sources/{{ source.id }}/scrape-status"
+        hx-trigger="every 2s"
+        hx-target="this"
+        hx-swap="outerHTML">
+    Scraping…
+  </span>
+{% elif error %}
   <span class="scrape-result scrape-result--error">Fehler: {{ error }}</span>
 {% elif stats %}
   <span class="scrape-result scrape-result--ok">

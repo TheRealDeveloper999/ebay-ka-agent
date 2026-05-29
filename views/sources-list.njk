@@ -23,15 +23,12 @@
           <th>Anzeigen</th>
           <th>Zuletzt gescraped</th>
           <th>Intervall</th>
-          <th>Status</th>
           <th>Aktionen</th>
         </tr>
       </thead>
-      <tbody>
-        {% for source in sources %}
-          {% include "partials/source-row.njk" %}
-        {% endfor %}
-      </tbody>
+      {% for source in sources %}
+        {% include "partials/source-row.njk" %}
+      {% endfor %}
     </table>
   </div>
 {% endif %}
