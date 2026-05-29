@@ -16,6 +16,8 @@ function isAllowedUrl(raw) {
   } catch { return false; }
 }
 
+const parseOptionalFloat = v => (v !== '' && v != null) ? parseFloat(v) : null;
+
 function validateSource(body) {
   const errors = [];
   if (!body.name || !body.name.trim()) errors.push('Name ist erforderlich');
@@ -23,6 +25,13 @@ function validateSource(body) {
   if (body.url && !isAllowedUrl(body.url)) errors.push('URL muss eine kleinanzeigen.de-Seite sein (https://www.kleinanzeigen.de/...)');
   const interval = parseInt(body.interval, 10);
   if (isNaN(interval) || interval < 5) errors.push('Intervall muss mindestens 5 Minuten betragen');
+  if (!isNaN(interval) && interval > 1440) errors.push('Intervall darf maximal 1440 Minuten (24 h) betragen');
+  const min = parseOptionalFloat(body.min_price);
+  const max = parseOptionalFloat(body.max_price);
+  if (min !== null && isNaN(min)) errors.push('Mindestpreis muss eine Zahl sein');
+  if (max !== null && isNaN(max)) errors.push('Höchstpreis muss eine Zahl sein');
+  if (min !== null && max !== null && !isNaN(min) && !isNaN(max) && max < min)
+    errors.push('Höchstpreis muss größer oder gleich dem Mindestpreis sein');
   return errors;
 }
 
@@ -51,8 +60,8 @@ router.post('/sources', (req, res) => {
     interval: parseInt(req.body.interval, 10),
     active: req.body.active === 'on' ? 1 : 0,
     keyword: req.body.keyword?.trim() || null,
-    min_price: parseFloat(req.body.min_price) || null,
-    max_price: parseFloat(req.body.max_price) || null,
+    min_price: parseOptionalFloat(req.body.min_price),
+    max_price: parseOptionalFloat(req.body.max_price),
   });
   const source = db.prepare('SELECT * FROM sources WHERE id = ?').get(result.lastInsertRowid);
   if (source.active) addJob(source);
@@ -85,8 +94,8 @@ router.post('/sources/:id', (req, res) => {
     interval: parseInt(req.body.interval, 10),
     active: req.body.active === 'on' ? 1 : 0,
     keyword: req.body.keyword?.trim() || null,
-    min_price: parseFloat(req.body.min_price) || null,
-    max_price: parseFloat(req.body.max_price) || null,
+    min_price: parseOptionalFloat(req.body.min_price),
+    max_price: parseOptionalFloat(req.body.max_price),
   });
   const source = db.prepare('SELECT * FROM sources WHERE id = ?').get(req.params.id);
   restartJob(source);
