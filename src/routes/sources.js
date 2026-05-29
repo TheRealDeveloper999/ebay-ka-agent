@@ -7,11 +7,20 @@ const { restartJob, removeJob, addJob } = require('../scheduler');
 const { acquire, ping, complete, getJob, clear, PING_INTERVAL_MS } = require('../scraper/locks');
 const router = express.Router();
 
+const ALLOWED_HOSTNAMES = new Set(['kleinanzeigen.de', 'www.kleinanzeigen.de', 'm.kleinanzeigen.de']);
+
+function isAllowedUrl(raw) {
+  try {
+    const { protocol, hostname } = new URL(raw);
+    return (protocol === 'http:' || protocol === 'https:') && ALLOWED_HOSTNAMES.has(hostname);
+  } catch { return false; }
+}
+
 function validateSource(body) {
   const errors = [];
   if (!body.name || !body.name.trim()) errors.push('Name ist erforderlich');
   if (!body.url || !body.url.trim()) errors.push('URL ist erforderlich');
-  if (body.url && !body.url.includes('kleinanzeigen.de')) errors.push('URL muss kleinanzeigen.de enthalten');
+  if (body.url && !isAllowedUrl(body.url)) errors.push('URL muss eine kleinanzeigen.de-Seite sein (https://www.kleinanzeigen.de/...)');
   const interval = parseInt(body.interval, 10);
   if (isNaN(interval) || interval < 5) errors.push('Intervall muss mindestens 5 Minuten betragen');
   return errors;
