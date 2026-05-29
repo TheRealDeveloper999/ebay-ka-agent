@@ -91,6 +91,8 @@ CREATE TABLE IF NOT EXISTS extract_queue (
     last_error      TEXT,
     next_attempt_at TEXT NOT NULL DEFAULT (datetime('now')),
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    worker_id       INTEGER,
+    claimed_at      TEXT,
     UNIQUE(item_id)
 );
 
