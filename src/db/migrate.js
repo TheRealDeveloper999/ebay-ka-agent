@@ -5,7 +5,9 @@ const path = require('path');
 const { getDb } = require('./index');
 
 // Each entry runs exactly once, identified by version number.
-// To add a migration: append a new object — never edit existing ones.
+// IMPORTANT: always append new migrations at the end AND keep version numbers
+// strictly ascending. The array is sorted by version at runtime as a safety net,
+// but out-of-order entries here are a maintenance trap.
 const migrations = [
   {
     version: 1,
@@ -60,26 +62,6 @@ const migrations = [
     },
   },
   {
-    version: 5,
-    description: 'add score column to items and backfill from existing specs',
-    run(db) {
-      db.exec('ALTER TABLE items ADD COLUMN score INTEGER');
-      // Backfill scores for items that already have specs
-      const { scoreItem } = require('../lib/scorer');
-      const items = db.prepare('SELECT id, specs FROM items WHERE specs IS NOT NULL').all();
-      const update = db.prepare('UPDATE items SET score = ? WHERE id = ?');
-      let filled = 0;
-      for (const it of items) {
-        try {
-          const specs = JSON.parse(it.specs);
-          const score = scoreItem(specs);
-          if (score !== null) { update.run(score, it.id); filled++; }
-        } catch {}
-      }
-      console.log(`[migrate] scored ${filled}/${items.length} existing items`);
-    },
-  },
-  {
     version: 4,
     description: 'add extract_queue table and remove duplicate snapshots',
     run(db) {
@@ -119,6 +101,26 @@ const migrations = [
       `);
     },
   },
+  {
+    version: 5,
+    description: 'add score column to items and backfill from existing specs',
+    run(db) {
+      db.exec('ALTER TABLE items ADD COLUMN score INTEGER');
+      // Backfill scores for items that already have specs
+      const { scoreItem } = require('../lib/scorer');
+      const items = db.prepare('SELECT id, specs FROM items WHERE specs IS NOT NULL').all();
+      const update = db.prepare('UPDATE items SET score = ? WHERE id = ?');
+      let filled = 0;
+      for (const it of items) {
+        try {
+          const specs = JSON.parse(it.specs);
+          const score = scoreItem(specs);
+          if (score !== null) { update.run(score, it.id); filled++; }
+        } catch {}
+      }
+      console.log(`[migrate] scored ${filled}/${items.length} existing items`);
+    },
+  },
 ];
 
 function migrate() {
@@ -150,8 +152,12 @@ function migrate() {
     db.prepare('SELECT version FROM schema_migrations').pluck().all()
   );
 
-  for (const m of migrations) {
-    if (applied.has(m.version)) continue;
+  // Sort by version as a safety net — array order in source should already be correct
+  const pending = migrations
+    .filter(m => !applied.has(m.version))
+    .sort((a, b) => a.version - b.version);
+
+  for (const m of pending) {
     console.log(`[migrate] applying v${m.version}: ${m.description}`);
     db.transaction(() => m.run(db))();
     db.prepare('INSERT INTO schema_migrations (version) VALUES (?)').run(m.version);
