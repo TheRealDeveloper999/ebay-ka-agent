@@ -1,15 +1,42 @@
-<a class="item-card" href="/items/{{ item.id }}">
-  {% if item.thumbnail_url %}
-    <img class="item-card__thumb" src="{{ item.thumbnail_url }}" alt="" loading="lazy">
-  {% else %}
-    <div class="item-card__thumb item-card__thumb--placeholder"></div>
-  {% endif %}
-  <div class="item-card__body">
-    <div class="item-card__title">{{ item.title }}</div>
-    <div class="item-card__meta">
-      <span class="item-card__price">{{ formatPrice(item.price, item.price_text) }}</span>
-      {% if item.location %}<span class="item-card__location">{{ item.location }}</span>{% endif %}
+<div class="item-card">
+  <a class="item-card__link" href="/items/{{ item.id }}">
+    <div class="item-card__thumb-wrap" title="{{ item.title }}">
+      {% if item.thumbnail_url %}
+        <img class="item-card__thumb" src="{{ item.thumbnail_url }}" alt="" loading="lazy">
+      {% else %}
+        <div class="item-card__thumb item-card__thumb--placeholder"></div>
+      {% endif %}
+      {% if item.score !== null and item.score !== undefined %}
+        <span class="score-badge score-badge--{{ scoreLabel(item.score) }} score-badge--overlay" title="GPU-Score">{{ item.score }}</span>
+      {% endif %}
     </div>
-    <div class="item-card__source">{{ item.source_name }} · {{ relativeTime(item.first_seen_at) }}</div>
+    <div class="item-card__body">
+      {% set sl = specLine(item.specs) %}
+      {% if sl %}
+        <div class="item-card__title item-card__title--specs" title="{{ sl }}">{{ sl }}</div>
+      {% elif item.queue_status in ['pending', 'processing'] %}
+        <div class="item-card__title item-card__title--pending">Wird analysiert…</div>
+      {% else %}
+        <div class="item-card__title" title="{{ item.title }}">{{ item.title }}</div>
+      {% endif %}
+      <div class="item-card__meta">
+        <span class="item-card__price">{{ formatPrice(item.price, item.price_text) }}</span>
+        {% if item.location %}<span class="item-card__location">{{ item.location }}</span>{% endif %}
+      </div>
+      <div class="item-card__source">{{ item.source_name }} · {{ relativeTime(item.first_seen_at) }}</div>
+    </div>
+  </a>
+  <div class="item-card__menu">
+    <button class="item-card__menu-btn" type="button" aria-label="Optionen">···</button>
+    <ul class="item-card__dropdown" hidden>
+      <li>
+        <button type="button"
+                hx-post="/items/{{ item.id }}/hide"
+                hx-target="closest .item-card"
+                hx-swap="delete">
+          Ausblenden
+        </button>
+      </li>
+    </ul>
   </div>
-</a>
+</div>

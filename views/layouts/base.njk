@@ -3,17 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}KA Agent{% endblock %} — eBay Kleinanzeigen Monitor</title>
-  <link rel="stylesheet" href="/css/reset.css">
-  <link rel="stylesheet" href="/css/app.css">
+  <title>{% block title %}eBay KA Agent{% endblock %} — eBay Kleinanzeigen Monitor</title>
+  <link rel="stylesheet" href="/css/reset.css?v={{ buildTs }}">
+  <link rel="stylesheet" href="/css/app.css?v={{ buildTs }}">
   {% block head %}{% endblock %}
 </head>
 <body>
   <nav class="nav">
-    <a class="nav-brand" href="/">KA Agent</a>
+    <a class="nav-brand" href="/">eBay KA Agent</a>
     <ul class="nav-links">
       <li><a href="/" class="{{ 'active' if page == 'dashboard' }}">Dashboard</a></li>
-      <li><a href="/sources" class="{{ 'active' if page == 'sources' }}">Quellen</a></li>
+      <li><a href="/changes" class="{{ 'active' if page == 'changes' }}">Änderungen</a></li>
+      <li class="nav-settings {{ 'nav-settings--active' if page in ['sources', 'queue'] }}">
+        <button class="nav-settings__btn" aria-label="Einstellungen" aria-expanded="false">···</button>
+        <ul class="nav-settings__dropdown" hidden>
+          <li><a href="/queue" class="{{ 'active' if page == 'queue' }}">Warteschlange</a></li>
+          <li><a href="/sources" class="{{ 'active' if page == 'sources' }}">Quellen</a></li>
+        </ul>
+      </li>
     </ul>
   </nav>
 
@@ -25,8 +32,32 @@
     {% block content %}{% endblock %}
   </main>
 
-  <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+  <script src="/js/htmx.min.js"></script>
   <script src="/js/app.js"></script>
   {% block scripts %}{% endblock %}
+  {% if devMode %}
+  <script>
+    (function () {
+      var knownId = null;
+      function connect() {
+        var es = new EventSource('/__hot-reload');
+        es.onmessage = function (e) {
+          var msg = JSON.parse(e.data);
+          if (msg.type === 'init') {
+            if (knownId && knownId !== msg.id) location.reload();
+            knownId = msg.id;
+          } else if (msg.type === 'reload') {
+            location.reload();
+          }
+        };
+        es.onerror = function () {
+          es.close();
+          setTimeout(connect, 1000);
+        };
+      }
+      connect();
+    })();
+  </script>
+  {% endif %}
 </body>
 </html>

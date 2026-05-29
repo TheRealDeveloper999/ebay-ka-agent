@@ -9,23 +9,11 @@
 
 {% include "partials/stats-cards.njk" %}
 
-<div class="dashboard-grid">
-  <section class="section">
-    <h2>Letzte Änderungen</h2>
-    {% include "partials/changes-feed.njk" %}
-  </section>
+<section class="section">
+  <h2>Zuletzt entdeckt</h2>
+  <div id="items-grid-wrap">
+    {% include "partials/items-grid.njk" %}
+  </div>
+</section>
 
-  <section class="section">
-    <h2>Zuletzt entdeckt</h2>
-    {% if recentItems.length == 0 %}
-      <p class="empty-state">Noch keine Anzeigen gefunden. <a href="/sources/new">Quelle hinzufügen</a></p>
-    {% else %}
-      <div class="items-grid">
-        {% for item in recentItems %}
-          {% include "partials/item-card.njk" %}
-        {% endfor %}
-      </div>
-    {% endif %}
-  </section>
-</div>
 {% endblock %}

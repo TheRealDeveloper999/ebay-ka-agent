@@ -1,0 +1,59 @@
+{% if anyPending %}
+<span style="display:none"
+      hx-get="/dashboard/items?sort={{ sort }}&page={{ currentPage }}"
+      hx-trigger="every 5s"
+      hx-target="#items-grid-wrap"
+      hx-swap="innerHTML"></span>
+{% endif %}
+
+<div class="items-grid-toolbar">
+  <div class="sort-toggle">
+    <button class="btn btn-sm {{ 'btn-active' if sort == 'score' else '' }}"
+            hx-get="/dashboard/items?sort=score&page=1"
+            hx-target="#items-grid-wrap"
+            hx-swap="innerHTML">
+      Score
+    </button>
+    <button class="btn btn-sm {{ 'btn-active' if sort == 'date' else '' }}"
+            hx-get="/dashboard/items?sort=date&page=1"
+            hx-target="#items-grid-wrap"
+            hx-swap="innerHTML">
+      Neueste
+    </button>
+  </div>
+  <span class="items-grid-total">{{ total }} Anzeigen</span>
+</div>
+
+{% if recentItems.length == 0 %}
+  <p class="empty-state">Noch keine Anzeigen gefunden. <a href="/sources/new">Quelle hinzufügen</a></p>
+{% else %}
+  <div class="items-grid">
+    {% for item in recentItems %}
+      {% include "partials/item-card.njk" %}
+    {% endfor %}
+  </div>
+
+  {% if totalPages > 1 %}
+  <div class="pagination">
+    {% if currentPage > 1 %}
+      <button class="btn btn-sm"
+              hx-get="/dashboard/items?sort={{ sort }}&page={{ currentPage - 1 }}"
+              hx-target="#items-grid-wrap"
+              hx-swap="innerHTML">← Zurück</button>
+    {% else %}
+      <button class="btn btn-sm" disabled>← Zurück</button>
+    {% endif %}
+
+    <span class="pagination__info">{{ currentPage }} / {{ totalPages }}</span>
+
+    {% if currentPage < totalPages %}
+      <button class="btn btn-sm"
+              hx-get="/dashboard/items?sort={{ sort }}&page={{ currentPage + 1 }}"
+              hx-target="#items-grid-wrap"
+              hx-swap="innerHTML">Weiter →</button>
+    {% else %}
+      <button class="btn btn-sm" disabled>Weiter →</button>
+    {% endif %}
+  </div>
+  {% endif %}
+{% endif %}
