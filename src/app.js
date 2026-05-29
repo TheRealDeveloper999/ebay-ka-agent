@@ -3,8 +3,10 @@
 const express = require('express');
 const nunjucks = require('nunjucks');
 const path = require('path');
-const { formatPrice, formatDate, relativeTime, changeTypeLabel, changeTypeBadgeClass } = require('./lib/formatters');
+const { formatPrice, formatDate, relativeTime, changeTypeLabel, changeTypeBadgeClass, queueStatusLabel, queueStatusBadgeClass } = require('./lib/formatters');
+const { scoreLabel, specLine } = require('./lib/scorer');
 
+const DEV = process.env.NODE_ENV !== 'production';
 const app = express();
 
 // Template engine
@@ -12,6 +14,7 @@ const env = nunjucks.configure(path.join(__dirname, '../views'), {
   autoescape: true,
   express: app,
   watch: false,
+  noCache: DEV,
 });
 
 env.addGlobal('formatPrice', formatPrice);
@@ -19,6 +22,11 @@ env.addGlobal('formatDate', formatDate);
 env.addGlobal('relativeTime', relativeTime);
 env.addGlobal('changeTypeLabel', changeTypeLabel);
 env.addGlobal('changeTypeBadgeClass', changeTypeBadgeClass);
+env.addGlobal('queueStatusLabel', queueStatusLabel);
+env.addGlobal('queueStatusBadgeClass', queueStatusBadgeClass);
+env.addGlobal('scoreLabel', scoreLabel);
+env.addGlobal('specLine', specLine);
+env.addGlobal('buildTs', Date.now());
 
 app.set('view engine', 'njk');
 
@@ -27,10 +35,13 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+if (DEV) require('./dev/hot-reload').mount(app);
+
 // Flash messages via query params (simple, no sessions needed)
 app.use((req, res, next) => {
   res.locals.flash = req.query.flash || null;
   res.locals.flashType = req.query.flashType || 'success';
+  res.locals.devMode = DEV;
   next();
 });
 
@@ -38,6 +49,7 @@ app.use((req, res, next) => {
 app.use('/', require('./routes/dashboard'));
 app.use('/', require('./routes/sources'));
 app.use('/', require('./routes/items'));
+app.use('/', require('./routes/queue'));
 
 // 404
 app.use((req, res) => {

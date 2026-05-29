@@ -52,4 +52,12 @@ function changeTypeBadgeClass(type) {
   return classes[type] || 'badge-changed';
 }
 
-module.exports = { formatPrice, formatDate, relativeTime, changeTypeLabel, changeTypeBadgeClass };
+function queueStatusLabel(status) {
+  return { pending: 'Ausstehend', processing: 'Aktiv', done: 'Erledigt', failed: 'Fehlgeschlagen' }[status] || status;
+}
+
+function queueStatusBadgeClass(status) {
+  return { pending: 'badge-warning', processing: 'badge-info', done: 'badge-success', failed: 'badge-removed' }[status] || '';
+}
+
+module.exports = { formatPrice, formatDate, relativeTime, changeTypeLabel, changeTypeBadgeClass, queueStatusLabel, queueStatusBadgeClass };

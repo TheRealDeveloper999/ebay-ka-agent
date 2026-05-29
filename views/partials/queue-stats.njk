@@ -1,0 +1,88 @@
+{% if concurrency %}
+<p class="queue-concurrency">{{ concurrency }} parallele Worker</p>
+{% endif %}
+
+{% if keys and keys.length %}
+<div class="queue-keys">
+  <span class="queue-keys__label">API-Keys:</span>
+  {% for k in keys %}
+    <span class="queue-key {{ 'queue-key--ok' if k.available else 'queue-key--limit' }}"
+          title="{{ 'Verfügbar' if k.available else 'Limit erreicht bis ' + k.exhaustedUntil }}">
+      {{ k.suffix }}
+    </span>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="queue-counters">
+  <div class="queue-counter queue-counter--pending">
+    <span class="queue-counter__num">{{ counts.pending }}</span>
+    <span class="queue-counter__label">Ausstehend</span>
+  </div>
+  <div class="queue-counter queue-counter--processing">
+    <span class="queue-counter__num">{{ counts.processing }}</span>
+    <span class="queue-counter__label">Aktiv</span>
+  </div>
+  <div class="queue-counter queue-counter--done">
+    <span class="queue-counter__num">{{ counts.done }}</span>
+    <span class="queue-counter__label">Erledigt</span>
+  </div>
+  <div class="queue-counter queue-counter--failed">
+    <span class="queue-counter__num">{{ counts.failed }}</span>
+    <span class="queue-counter__label">Fehlgeschlagen</span>
+    {% if counts.failed > 0 %}
+    <button class="btn btn-sm queue-counter__restart"
+            hx-post="/queue/restart-failed"
+            hx-target="#queue-stats-wrap"
+            hx-swap="innerHTML"
+            title="Fehlgeschlagene Einträge neu starten">↺</button>
+    {% endif %}
+  </div>
+  {% set allExhausted = keys and keys.length and (keys | selectattr("available") | list | length == 0) %}
+  {% if paused %}
+  <div class="queue-counter queue-counter--paused">
+    <span class="queue-counter__num">{{ pauseMinutesLeft }}m</span>
+    <span class="queue-counter__label">{{ 'Key-Limit' if allExhausted else 'Pausiert' }}</span>
+  </div>
+  {% endif %}
+</div>
+
+{% if items.length == 0 %}
+  <p class="empty-state">Warteschlange ist leer.</p>
+{% else %}
+  <table class="queue-table">
+    <thead>
+      <tr>
+        <th>Artikel</th>
+        <th>Status</th>
+        <th>Versuche</th>
+        <th>Letzter Fehler</th>
+        <th>Erstellt</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in items %}
+      <tr>
+        <td class="queue-table__title">
+          <a href="/items/{{ entry.item_id }}">{{ entry.title | truncate(55) }}</a>
+        </td>
+        <td>
+          <span class="badge {{ queueStatusBadgeClass(entry.status) }}">{{ queueStatusLabel(entry.status) }}</span>
+        </td>
+        <td class="queue-table__attempts">
+          {{ entry.attempts }}
+          {% if entry.attempts > 0 and entry.status != 'processing' %}
+          <button class="btn btn-sm queue-table__reset-btn"
+                  hx-post="/queue/{{ entry.id }}/reset-attempts"
+                  hx-target="#queue-stats-wrap"
+                  hx-swap="innerHTML"
+                  title="Versuche zurücksetzen">↺</button>
+          {% endif %}
+        </td>
+        <td class="queue-table__error">{{ entry.last_error | truncate(80) if entry.last_error else '–' }}</td>
+        <td><time>{{ formatDate(entry.created_at) }}</time></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}

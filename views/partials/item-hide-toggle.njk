@@ -1,0 +1,17 @@
+<span id="item-hide-toggle">
+  {% if item.is_hidden %}
+    <button class="btn"
+            hx-post="/items/{{ item.id }}/unhide"
+            hx-target="#item-hide-toggle"
+            hx-swap="outerHTML">
+      Wieder einblenden
+    </button>
+  {% else %}
+    <button class="btn"
+            hx-post="/items/{{ item.id }}/hide"
+            hx-target="#item-hide-toggle"
+            hx-swap="outerHTML">
+      Ausblenden
+    </button>
+  {% endif %}
+</span>

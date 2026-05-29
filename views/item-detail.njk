@@ -5,7 +5,11 @@
 {% block content %}
 <div class="page-header">
   <h1 class="{{ 'removed' if item.removed_at }}">{{ item.title }}</h1>
-  <a class="btn" href="/sources">← Quellen</a>
+  <div class="page-header-actions">
+    <a class="btn btn-primary" href="{{ item.url }}" target="_blank">Auf kleinanzeigen.de öffnen ↗</a>
+    {% include "partials/item-hide-toggle.njk" %}
+    <a class="btn" href="/">← Dashboard</a>
+  </div>
 </div>
 
 {% if item.removed_at %}
@@ -33,6 +37,15 @@
         <span class="meta-label">Preis</span>
         <span class="meta-value price-value">{{ formatPrice(item.price, item.price_text) }}</span>
       </div>
+      {% if item.score !== null and item.score !== undefined %}
+      <div class="item-meta-row">
+        <span class="meta-label">Score</span>
+        <span class="meta-value">
+          <span class="score-badge score-badge--{{ scoreLabel(item.score) }} score-badge--lg">{{ item.score }}</span>
+          <span class="score-tier">{{ scoreLabel(item.score) }}</span>
+        </span>
+      </div>
+      {% endif %}
       {% if item.location %}
         <div class="item-meta-row">
           <span class="meta-label">Ort</span>
@@ -65,6 +78,13 @@
       </div>
     </div>
 
+    <div class="specs-box">
+      <h3>KI-Analyse</h3>
+      {% set specs = item.specs_parsed %}
+      {% set itemId = item.id %}
+      {% include "partials/item-specs.njk" %}
+    </div>
+
     {% if item.description %}
       <div class="description-box">
         <h3>Beschreibung</h3>
@@ -72,9 +92,6 @@
       </div>
     {% endif %}
 
-    <div class="item-actions">
-      <a class="btn btn-primary" href="{{ item.url }}" target="_blank">Auf kleinanzeigen.de öffnen ↗</a>
-    </div>
   </div>
 
   <aside class="item-detail-side">

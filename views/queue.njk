@@ -1,0 +1,173 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Warteschlange{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>KI-Analyse Warteschlange</h1>
+</div>
+
+<div class="section queue-graph-section">
+  <div class="queue-graph-header">
+    <h2>Durchsatz — letzte 2 Minuten</h2>
+    <div class="queue-graph-controls">
+      <div class="queue-graph-legend">
+        <span class="legend-dot" style="background:var(--green)"></span> Verarbeitet
+        <span class="legend-dot" style="background:var(--red)"></span> Fehler
+      </div>
+      <div class="queue-graph-interval" role="group" aria-label="Aktualisierungsintervall">
+        <button class="btn btn-sm" data-interval="2000">2s</button>
+        <button class="btn btn-sm btn-active" data-interval="5000">5s</button>
+        <button class="btn btn-sm" data-interval="10000">10s</button>
+      </div>
+    </div>
+  </div>
+  <canvas id="queue-graph"></canvas>
+  <p id="queue-graph-note" class="queue-graph-note">Sammle Daten…</p>
+</div>
+
+<div class="section">
+  <h2>Aktuelle Einträge</h2>
+  <div id="queue-stats-wrap"
+       hx-get="/queue/stats"
+       hx-trigger="every 2s"
+       hx-swap="innerHTML">
+    {% include "partials/queue-stats.njk" %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  let pollInterval = 5000;
+  let MAX_POINTS = Math.round(120000 / pollInterval);
+  const doneDelta = [];
+  const failedDelta = [];
+  let lastDone = null, lastFailed = null;
+  let pollTimer = null;
+
+  const canvas = document.getElementById('queue-graph');
+  const note = document.getElementById('queue-graph-note');
+
+  function resizeCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = Math.floor(rect.width);
+    canvas.height = 160;
+    draw();
+  }
+
+  function draw() {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const PAD_L = 32, PAD_R = 12, PAD_T = 12, PAD_B = 24;
+    const plotW = W - PAD_L - PAD_R;
+    const plotH = H - PAD_T - PAD_B;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#fff';
+    ctx.fillRect(0, 0, W, H);
+
+    const gridLines = 4;
+    const rawMax = Math.max(1, ...doneDelta, ...failedDelta);
+    const maxVal = Math.ceil(rawMax / gridLines) * gridLines;
+
+    // Grid
+    ctx.strokeStyle = '#e0e0e5';
+    ctx.lineWidth = 1;
+    ctx.font = '10px system-ui, sans-serif';
+    ctx.fillStyle = '#6b7280';
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= gridLines; i++) {
+      const y = PAD_T + plotH * (1 - i / gridLines);
+      ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
+      ctx.fillText(Math.round(maxVal * i / gridLines), PAD_L - 4, y + 3);
+    }
+
+    // X axis labels
+    ctx.textAlign = 'center';
+    ctx.fillText('–2m', PAD_L, H - 6);
+    ctx.fillText('–1m', PAD_L + plotW / 2, H - 6);
+    ctx.fillText('jetzt', W - PAD_R, H - 6);
+
+    function xPos(i, len) {
+      // anchor newest point (i = len-1) to right edge
+      return PAD_L + plotW * (i + MAX_POINTS - len) / (MAX_POINTS - 1);
+    }
+
+    function drawLine(data, color) {
+      if (data.length < 2) return;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      data.forEach((val, i) => {
+        const x = xPos(i, data.length);
+        const y = PAD_T + plotH * (1 - val / maxVal);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Fill under line
+      ctx.globalAlpha = 0.08;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      data.forEach((val, i) => {
+        const x = xPos(i, data.length);
+        const y = PAD_T + plotH * (1 - val / maxVal);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.lineTo(xPos(data.length - 1, data.length), PAD_T + plotH);
+      ctx.lineTo(xPos(0, data.length), PAD_T + plotH);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    drawLine(doneDelta, '#16a34a');
+    drawLine(failedDelta, '#dc2626');
+  }
+
+  async function poll() {
+    try {
+      const data = await fetch('/queue/graph-data').then(r => r.json());
+
+      if (lastDone !== null) {
+        doneDelta.push(Math.max(0, data.done - lastDone));
+        failedDelta.push(Math.max(0, data.failed - lastFailed));
+        if (doneDelta.length > MAX_POINTS) doneDelta.shift();
+        if (failedDelta.length > MAX_POINTS) failedDelta.shift();
+
+        const total = doneDelta.reduce((a, b) => a + b, 0);
+        const errors = failedDelta.reduce((a, b) => a + b, 0);
+        note.textContent = `${total} verarbeitet, ${errors} Fehler (letzte 2 Min.)${data.paused ? ' · Pausiert noch ' + data.pauseMinutesLeft + ' Min.' : ''}`;
+      }
+      lastDone = data.done;
+      lastFailed = data.failed;
+
+      draw();
+    } catch (e) {
+      note.textContent = 'Verbindungsfehler';
+    }
+    pollTimer = setTimeout(poll, pollInterval);
+  }
+
+  document.querySelectorAll('.queue-graph-interval button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.queue-graph-interval button').forEach(b => b.classList.remove('btn-active'));
+      btn.classList.add('btn-active');
+      pollInterval = parseInt(btn.dataset.interval, 10);
+      MAX_POINTS = Math.round(120000 / pollInterval);
+      while (doneDelta.length > MAX_POINTS) doneDelta.shift();
+      while (failedDelta.length > MAX_POINTS) failedDelta.shift();
+      clearTimeout(pollTimer);
+      poll();
+    });
+  });
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  poll();
+})();
+</script>
+{% endblock %}
