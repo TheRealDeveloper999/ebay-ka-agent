@@ -41,8 +41,8 @@ function getQueueEntry(itemId) {
 }
 
 // Atomically claim the next pending item and mark it as processing.
-// SQLite transaction ensures two concurrent workers never claim the same row.
-function claimNextItem() {
+// Stores workerId so a crash only resets that worker's own rows.
+function claimNextItem(workerId) {
   return getDb().transaction(() => {
     const db = getDb();
     const entry = db.prepare(`
@@ -56,7 +56,11 @@ function claimNextItem() {
       LIMIT 1
     `).get();
     if (!entry) return null;
-    db.prepare("UPDATE extract_queue SET status='processing', attempts=attempts+1 WHERE id=?").run(entry.id);
+    db.prepare(`
+      UPDATE extract_queue
+      SET status='processing', attempts=attempts+1, worker_id=?, claimed_at=datetime('now')
+      WHERE id=?
+    `).run(workerId, entry.id);
     return entry;
   })();
 }
@@ -68,10 +72,11 @@ async function runWorker(workerId) {
     await runWorkerLoop(workerId);
   } catch (err) {
     console.error(`[extract-queue] w${workerId} crashed unexpectedly:`, err);
-    // Reset any item this worker may have left stuck in 'processing'
+    // Reset only this worker's row — don't disturb other workers' in-flight items
     try {
-      // We don't know which item it was, so reset all stuck items
-      getDb().prepare("UPDATE extract_queue SET status='pending' WHERE status='processing'").run();
+      getDb().prepare(
+        "UPDATE extract_queue SET status='pending', worker_id=NULL, claimed_at=NULL WHERE status='processing' AND worker_id=?"
+      ).run(workerId);
     } catch (_) {}
     if (running) {
       console.log(`[extract-queue] w${workerId} restarting in 5s`);
@@ -91,7 +96,7 @@ async function runWorkerLoop(workerId) {
     }
     pauseUntil = null;
 
-    const entry = claimNextItem();
+    const entry = claimNextItem(workerId);
     if (!entry) {
       await sleep(POLL_MS); // nothing to do — poll
       continue;
@@ -167,8 +172,12 @@ function startQueue() {
   running = true;
 
   const db = getDb();
-  const reset = db.prepare("UPDATE extract_queue SET status='pending' WHERE status='processing'").run();
-  if (reset.changes > 0) console.log(`[extract-queue] reset ${reset.changes} stuck item(s)`);
+  // Only reset rows stuck in processing for >15 min (orphaned by a previous process crash)
+  const reset = db.prepare(`
+    UPDATE extract_queue SET status='pending', worker_id=NULL, claimed_at=NULL
+    WHERE status='processing' AND claimed_at < datetime('now', '-15 minutes')
+  `).run();
+  if (reset.changes > 0) console.log(`[extract-queue] reset ${reset.changes} stale item(s)`);
 
   console.log(`[extract-queue] starting ${CONCURRENCY} worker(s)`);
   for (let i = 0; i < CONCURRENCY; i++) {

@@ -121,6 +121,16 @@ const migrations = [
       console.log(`[migrate] scored ${filled}/${items.length} existing items`);
     },
   },
+  {
+    version: 6,
+    description: 'add worker_id and claimed_at to extract_queue for per-worker crash isolation',
+    run(db) {
+      db.exec(`
+        ALTER TABLE extract_queue ADD COLUMN worker_id INTEGER;
+        ALTER TABLE extract_queue ADD COLUMN claimed_at TEXT;
+      `);
+    },
+  },
 ];
 
 function migrate() {
