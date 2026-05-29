@@ -65,3 +65,53 @@
   </div>
 </form>
 {% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const urlEl = document.getElementById('url');
+  const minEl = document.getElementById('min_price');
+  const maxEl = document.getElementById('max_price');
+
+  // KA price format: /preis:MIN:MAX/ (colons, either side can be empty)
+  const PRICE_RE = /\/preis:(\d*):(\d*)/;
+
+  function parsePrice(url) {
+    const m = url.match(PRICE_RE);
+    return m ? { min: m[1], max: m[2] } : null;
+  }
+
+  function buildPriceSegment(min, max) {
+    return (min || max) ? `/preis:${min}:${max}` : '';
+  }
+
+  // URL → price fields
+  urlEl.addEventListener('input', function () {
+    const p = parsePrice(this.value);
+    if (!p) return;
+    minEl.value = p.min;
+    maxEl.value = p.max;
+  });
+
+  // Price fields → URL
+  function syncUrlFromPrice() {
+    let url = urlEl.value.trim();
+    if (!url) return;
+    const min = minEl.value.trim();
+    const max = maxEl.value.trim();
+    const segment = buildPriceSegment(min, max);
+    if (PRICE_RE.test(url)) {
+      // Replace existing segment (or remove if both empty)
+      url = url.replace(PRICE_RE, segment);
+    } else if (segment) {
+      // Insert before the last path segment (e.g. k0c228l1253r30), or append
+      url = url.replace(/\/([^/]+)\/?$/, `${segment}/$1`);
+    }
+    urlEl.value = url;
+  }
+
+  minEl.addEventListener('input', syncUrlFromPrice);
+  maxEl.addEventListener('input', syncUrlFromPrice);
+})();
+</script>
+{% endblock %}
