@@ -1,3 +1,8 @@
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version    INTEGER PRIMARY KEY,
+    applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS sources (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     name            TEXT    NOT NULL,
@@ -17,6 +22,7 @@ CREATE TABLE IF NOT EXISTS sources (
 CREATE TABLE IF NOT EXISTS items (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     source_id       INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    provider        TEXT    NOT NULL DEFAULT 'kleinanzeigen.de',
     external_id     TEXT    NOT NULL,
     url             TEXT    NOT NULL,
     title           TEXT    NOT NULL,
@@ -31,7 +37,10 @@ CREATE TABLE IF NOT EXISTS items (
     first_seen_at   TEXT NOT NULL DEFAULT (datetime('now')),
     last_seen_at    TEXT NOT NULL DEFAULT (datetime('now')),
     removed_at      TEXT,
-    UNIQUE(source_id, external_id)
+    is_hidden       INTEGER NOT NULL DEFAULT 0,
+    specs           TEXT,
+    score           INTEGER,
+    UNIQUE(provider, external_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_items_source_id      ON items(source_id);
@@ -73,3 +82,16 @@ CREATE INDEX IF NOT EXISTS idx_changes_item_id      ON changes(item_id);
 CREATE INDEX IF NOT EXISTS idx_changes_detected_at  ON changes(detected_at);
 CREATE INDEX IF NOT EXISTS idx_changes_change_type  ON changes(change_type);
 CREATE INDEX IF NOT EXISTS idx_changes_source_id    ON changes(source_id);
+
+CREATE TABLE IF NOT EXISTS extract_queue (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_id         INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    status          TEXT NOT NULL DEFAULT 'pending',
+    attempts        INTEGER NOT NULL DEFAULT 0,
+    last_error      TEXT,
+    next_attempt_at TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(item_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_extract_queue_status ON extract_queue(status);
