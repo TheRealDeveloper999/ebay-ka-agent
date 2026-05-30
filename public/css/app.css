@@ -307,6 +307,7 @@ tbody.source-inactive .toggle-btn { opacity: 1; }
 .table tr:last-child td { border-bottom: none; }
 .url-truncate { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; font-size: .8rem; color: var(--text-muted); }
 .source-error { color: var(--red); font-size: .75rem; margin-top: .2rem; }
+.source-name-cell { display: flex; flex-direction: column; }
 .actions { display: flex; gap: .4rem; align-items: center; white-space: nowrap; }
 
 /* ── Scrape status ── */
@@ -566,4 +567,51 @@ canvas#queue-graph { display: block; width: 100%; border-radius: var(--radius); 
 
   /* Form row — single column on narrow screens */
   .form-row { grid-template-columns: 1fr; }
+
+  /* Sources table → stacked card rows */
+  .sources-table thead { display: none; }
+  .sources-table,
+  .sources-table tbody,
+  .sources-table tr { display: block; }
+  .sources-table tbody {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: .75rem;
+    overflow: hidden;
+  }
+  .sources-table td {
+    display: flex;
+    align-items: baseline;
+    gap: .5rem;
+    padding: .4rem .75rem;
+    border-bottom: 1px solid var(--border);
+    font-size: .82rem;
+  }
+  .sources-table td::before {
+    content: attr(data-label);
+    font-size: .7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    min-width: 4.5rem;
+    flex-shrink: 0;
+  }
+  .sources-table .url-truncate {
+    white-space: normal;
+    word-break: break-all;
+    max-width: none;
+  }
+  .sources-table td.actions {
+    flex-wrap: wrap;
+    white-space: normal;
+    align-items: center;
+    gap: .4rem;
+  }
+  .sources-table td.actions::before { display: none; }
+  .sources-table .source-status-row td {
+    padding: 0;
+    border-bottom: none;
+  }
+  .sources-table .source-status-row td::before { display: none; }
 }

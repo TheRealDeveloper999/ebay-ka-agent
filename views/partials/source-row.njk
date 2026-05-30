@@ -1,17 +1,19 @@
 <tbody id="source-group-{{ source.id }}" class="{{ 'source-inactive' if not source.active }}">
   <tr>
-    <td>
-      <strong>{{ source.name }}</strong>
-      {% if source.last_error %}
-        <div class="source-error">{{ source.last_error }}</div>
-      {% endif %}
+    <td data-label="Name">
+      <span class="source-name-cell">
+        <strong>{{ source.name }}</strong>
+        {% if source.last_error %}
+          <div class="source-error">{{ source.last_error }}</div>
+        {% endif %}
+      </span>
     </td>
-    <td>
+    <td data-label="URL">
       <a href="{{ source.url }}" target="_blank" class="url-truncate">{{ source.url }}</a>
     </td>
-    <td>{{ source.item_count }}</td>
-    <td>{{ relativeTime(source.last_scraped_at) }}</td>
-    <td>{{ source.interval }} min</td>
+    <td data-label="Anzeigen">{{ source.item_count }}</td>
+    <td data-label="Zuletzt">{{ relativeTime(source.last_scraped_at) }}</td>
+    <td data-label="Intervall">{{ source.interval }} min</td>
     <td class="actions">
       <button class="btn btn-sm"
               hx-post="/sources/{{ source.id }}/scrape"
@@ -39,7 +41,7 @@
       </button>
     </td>
   </tr>
-  <tr>
+  <tr class="source-status-row">
     <td colspan="6">
       <div id="scrape-status-{{ source.id }}" class="scrape-status-cell"></div>
     </td>
