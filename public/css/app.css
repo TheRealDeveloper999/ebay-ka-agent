@@ -497,6 +497,9 @@ canvas#queue-graph { display: block; width: 100%; border-radius: var(--radius); 
   }
   .page-header h1 {
     font-size: 1.25rem;
+    flex: 1 1 100%;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   /* Sections */
@@ -567,6 +570,27 @@ canvas#queue-graph { display: block; width: 100%; border-radius: var(--radius); 
 
   /* Form row — single column on narrow screens */
   .form-row { grid-template-columns: 1fr; }
+
+  /* Item detail — no horizontal overflow */
+  .page-header-actions {
+    flex-shrink: unset;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .page-header-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .item-detail-main,
+  .item-detail-side { min-width: 0; }
+  .item-meta-row { flex-wrap: wrap; gap: .2rem 0; }
+  .meta-value { min-width: 0; word-break: break-word; overflow-wrap: anywhere; }
+  .specs-table { table-layout: fixed; }
+  .specs-table td { word-break: break-word; overflow-wrap: anywhere; }
+  .description-text { word-break: break-word; overflow-wrap: anywhere; }
+  .timeline-content { min-width: 0; word-break: break-word; overflow-wrap: anywhere; }
+  .change-diff { word-break: break-word; overflow-wrap: anywhere; }
+  .snapshot-entry { flex-wrap: wrap; gap: .2rem; }
 
   /* Sources table → stacked card rows */
   .sources-table thead { display: none; }
