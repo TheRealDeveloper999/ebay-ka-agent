@@ -63,13 +63,13 @@
     <tbody>
       {% for entry in items %}
       <tr>
-        <td class="queue-table__title">
+        <td class="queue-table__title" data-label="Artikel">
           <a href="/items/{{ entry.item_id }}">{{ entry.title | truncate(55) }}</a>
         </td>
-        <td>
+        <td data-label="Status">
           <span class="badge {{ queueStatusBadgeClass(entry.status) }}">{{ queueStatusLabel(entry.status) }}</span>
         </td>
-        <td class="queue-table__attempts">
+        <td class="queue-table__attempts" data-label="Versuche">
           {{ entry.attempts }}
           {% if entry.attempts > 0 and entry.status != 'processing' %}
           <button class="btn btn-sm queue-table__reset-btn"
@@ -79,8 +79,8 @@
                   title="Versuche zurücksetzen">↺</button>
           {% endif %}
         </td>
-        <td class="queue-table__error">{{ entry.last_error | truncate(80) if entry.last_error else '–' }}</td>
-        <td><time>{{ formatDate(entry.created_at) }}</time></td>
+        <td class="queue-table__error" data-label="Fehler">{{ entry.last_error | truncate(80) if entry.last_error else '–' }}</td>
+        <td data-label="Erstellt"><time>{{ formatDate(entry.created_at) }}</time></td>
       </tr>
       {% endfor %}
     </tbody>

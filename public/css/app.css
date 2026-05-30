@@ -467,3 +467,103 @@ canvas#queue-graph { display: block; width: 100%; border-radius: var(--radius); 
 .queue-key { padding: .2rem .55rem; border-radius: 999px; font-family: monospace; font-size: .78rem; border: 1px solid; }
 .queue-key--ok    { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
 .queue-key--limit { background: #fee2e2; color: #991b1b; border-color: #fecaca; text-decoration: line-through; }
+
+/* ── Mobile / responsive ── */
+@media (max-width: 640px) {
+
+  /* Nav — compact, wrappable */
+  .nav {
+    padding: .55rem .75rem;
+    gap: .4rem;
+    flex-wrap: wrap;
+  }
+  .nav-links {
+    flex: 1;
+    flex-wrap: wrap;
+    gap: .5rem .75rem;
+  }
+
+  /* Main padding */
+  .main {
+    padding: 1rem .75rem;
+  }
+
+  /* Page header */
+  .page-header {
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1rem;
+  }
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  /* Sections */
+  .section {
+    padding: 1rem .75rem;
+  }
+
+  /* Queue graph — controls stack below heading */
+  .queue-graph-header {
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .queue-graph-controls {
+    flex-wrap: wrap;
+    gap: .5rem;
+    width: 100%;
+  }
+
+  /* Queue counters — 2-column grid */
+  .queue-counters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+  }
+  .queue-counter {
+    min-width: 0;
+    padding: .65rem 1rem;
+  }
+
+  /* Queue table → stacked card rows */
+  .queue-table thead { display: none; }
+  .queue-table,
+  .queue-table tbody,
+  .queue-table tr { display: block; }
+  .queue-table tr {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: .75rem;
+    overflow: hidden;
+  }
+  /* Re-enable inner separators (desktop rule removes border on tr:last-child tds) */
+  .queue-table tr:last-child td { border-bottom: 1px solid var(--border); }
+  .queue-table td {
+    display: flex;
+    align-items: baseline;
+    gap: .5rem;
+    padding: .4rem .75rem;
+    border-bottom: 1px solid var(--border);
+    font-size: .82rem;
+  }
+  .queue-table td:last-child { border-bottom: none; }
+  .queue-table td::before {
+    content: attr(data-label);
+    font-size: .7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    min-width: 4.5rem;
+    flex-shrink: 0;
+  }
+  .queue-table__title { max-width: none; }
+  .queue-table__attempts { text-align: left; width: auto; }
+  .queue-table__error { max-width: none; }
+
+  /* Stats grid — already 2 cols at 768px; keep on mobile */
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Form row — single column on narrow screens */
+  .form-row { grid-template-columns: 1fr; }
+}
