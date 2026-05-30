@@ -13,7 +13,7 @@
     "scrape": "node src/scraper/cli.js",
     "check:syntax": "find src -name '*.js' | xargs node --check && node --check public/js/app.js",
     "audit": "npm audit --omit=dev",
-    "test": "echo 'No tests yet' && exit 0"
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "better-sqlite3": "^9.6.0",

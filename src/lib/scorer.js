@@ -126,8 +126,13 @@ function normalizeGpu(raw) {
   let s = raw.toLowerCase();
   // Remove brand words (including 'arc' which is Intel's series name)
   s = s.replace(/\b(nvidia|geforce|amd|radeon|intel|arc)\b/g, '');
-  // Remove memory sizes except model-identifying ones like "1060 6gb" or "3080 12gb"
-  s = s.replace(/\b(\d{1,2})\s*gb?\b(?!\s*vram)/g, '');
+  // Strip standalone memory-size tokens (e.g. "16gb", "32 gb", "8g") but keep
+  // model-identifying variants where the number immediately follows a GPU model
+  // number (e.g. "3080 12gb" → keep "12gb" so the '3080 12gb' key scores 70,
+  // distinct from the plain '3080' key at 66).
+  // Negative lookbehind: if the GB token is preceded by a GPU model number group
+  // (3–4 digits possibly with a space) we leave it alone.
+  s = s.replace(/(?<!\d{3,4}\s?)\b(\d{1,2})\s*gb?\b(?!\s*vram)/g, '');
   // Add space between digits and "ti"/"xt"/"super" if missing: "1050ti" → "1050 ti"
   s = s.replace(/(\d)(ti|xt|super)\b/gi, '$1 $2');
   // Add space after model-series prefix if directly before digits: "rx5700" → "rx 5700"
