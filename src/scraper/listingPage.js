@@ -6,6 +6,28 @@ function randomDelay() {
   return new Promise(r => setTimeout(r, 500 + Math.random() * 1000));
 }
 
+function parseListingPrice(priceText) {
+  const text = String(priceText || '').trim();
+  const match = text.match(/\d[\d.,]*/);
+  if (!match) return null;
+
+  const normalized = match[0]
+    .replace(/\./g, '')
+    .replace(',', '.');
+  const price = parseFloat(normalized);
+  return Number.isNaN(price) ? null : price;
+}
+
+function passesListingFilters(card, filters = {}) {
+  if (filters.keyword && !card.title.toLowerCase().includes(filters.keyword.toLowerCase())) return false;
+
+  const price = parseListingPrice(card.price_text);
+  if (filters.min_price && price != null && price < filters.min_price) return false;
+  if (filters.max_price && price != null && price > filters.max_price) return false;
+
+  return true;
+}
+
 async function scrapeListingPage(page, url, filters = {}) {
   await page.setExtraHTTPHeaders({ 'Accept-Language': 'de-DE,de;q=0.9' });
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -59,14 +81,9 @@ async function scrapeListingPage(page, url, filters = {}) {
     });
 
     for (const card of pageCards) {
-      // Apply filters
-      if (filters.keyword && !card.title.toLowerCase().includes(filters.keyword.toLowerCase())) continue;
+      if (!passesListingFilters(card, filters)) continue;
 
-      const priceNum = parseFloat(card.price_text.replace(/[^\d,]/g, '').replace(',', '.'));
-      if (filters.min_price && !isNaN(priceNum) && priceNum < filters.min_price) continue;
-      if (filters.max_price && !isNaN(priceNum) && priceNum > filters.max_price) continue;
-
-      card.price = isNaN(priceNum) ? null : priceNum;
+      card.price = parseListingPrice(card.price_text);
       cards.push(card);
     }
 
@@ -90,4 +107,4 @@ async function scrapeListingPage(page, url, filters = {}) {
   });
 }
 
-module.exports = { scrapeListingPage };
+module.exports = { scrapeListingPage, parseListingPrice, passesListingFilters };
