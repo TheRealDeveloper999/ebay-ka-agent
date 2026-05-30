@@ -4,18 +4,18 @@ This version keeps only currently relevant / not-yet-fixed improvement points. I
 
 Checks run / current validation status:
 - JS syntax check with Node v21.6.1: OK
-- npm test: OK placeholder only (`No tests yet`)
+- npm test with Node v21.6.1: OK (`126` tests passing)
 - npm audit --omit=dev: 0 vulnerabilities after node-cron upgrade
 - Inline source-form script parse check: OK
-- Fresh temp-DB smoke initially exposed a schema drift bug: `extract_queue.worker_id` / `claimed_at` were used by the worker but missing from `schema.sql`. This was fixed by adding those columns to the fresh schema.
-- Current DB quick stats from local DB:
+- Fresh temp-DB smoke initially exposed a schema drift bug: `extract_queue.worker_id` / `claimed_at` were used by the worker but missing from `schema.sql`. This was fixed by adding those columns to the fresh schema and is now covered by `test/db-queue.test.js`.
+- Current DB quick stats from local DB at review time:
   - sources: 2
   - live items: 134
   - snapshots: 178
   - changes: 179
   - queue entries: 149
   - failed queue: 0
-- Codebase size excluding node_modules/data:
+- Codebase size excluding node_modules/data at review time:
   - JS: 23 files / ~2000 lines
   - Nunjucks: 19 files / ~921 lines
   - CSS: ~480 lines
@@ -49,66 +49,38 @@ Option B, cleaner:
 
 Given this is a monitor, I’d probably choose B if you expect overlapping sources.
 
-2. Add real tests before the project grows further
+2. Keep tests targeted as new behavior is added
 
-`package.json` now has scripts, but `npm test` is still a placeholder.
+The project now has a useful `node:test` suite (`126` tests at the time of this review), covering:
+- `src/lib/scorer.js`
+  - `normalizeGpu`
+  - `scoreGpu` longest match
+  - `scoreItem`
+  - `specLine` JSON parsing/formatting
+- `src/scraper/listingPage.js` price parsing/filtering
+- `src/scraper/differ.js`
+- `src/routes/sources.js` validation
+- `src/lib/extract-queue.js` state transitions and race-condition safety
+- fresh DB schema smoke checks
+- item image/card rendering helpers
+- scheduler interval anchoring
 
-High-value low-effort test targets:
-- src/lib/scorer.js
-  - normalizeGpu
-  - scoreGpu longest match
-  - specLine JSON parsing
-- src/scraper/listingPage.js price parsing/filtering
-- src/scraper/differ.js
-- src/routes/sources.js validation
-- src/lib/extract-queue.js state transitions
-- fresh DB migration/schema smoke boot
+Remaining test priority:
+- Add source/listing identity tests before changing that model.
+- Add route/integration smoke around dashboard/details if templates become more complex.
+- Keep using one temp SQLite DB per DB test via `DB_PATH=/tmp/...`.
 
-Recommended stack:
-- node:test built-in + assert
-- supertest for Express route smoke tests
-- one temp SQLite DB per test using DB_PATH=/tmp/...
+3. Keep AI extraction contract strict
 
-3. Use an API response schema / validate AI output
+Implemented now:
+- `src/lib/extractor.js` uses the documented default model `qwen/qwen3-235b-a22b-2507`.
+- `.env` supports comma-separated `OPENROUTER_API_KEYS`, single `OPENROUTER_API_KEY`, and numbered `OPENROUTER_API_KEY_1..N` conventions.
+- OpenRouter requests JSON-only output.
+- Model output is locally validated and malformed/ambiguous/missing/extra/invalid fields become model errors instead of silently flowing into scoring/UI.
 
-src/lib/extractor.js:144-151 currently extracts first JSON-ish object with regex and JSON.parse.
+Keep the existing rule: validation is OK, server-side normalization is not. If extraction quality is bad, improve the prompt/contract rather than regex-fixing model output after the fact.
 
-Problems:
-- No schema validation.
-- Greedy brace regex can misparse if the model returns extra brace-containing text.
-- Bad fields can flow into scoring/UI silently.
-
-Better:
-- If OpenRouter model supports it, send response_format: { type: "json_object" } or JSON schema.
-- Validate fields after parse with a small local validator.
-- Keep the “no server-side normalization” rule, but validation/rejection is not normalization. Bad output should become MODEL_ERROR and retry/fail cleanly.
-
-4. Align OpenRouter defaults/docs
-
-CLAUDE.md says:
-OPENROUTER_MODEL=qwen/qwen3-235b-a22b-2507
-multiple keys as OPENROUTER_API_KEY_1, _2, _3
-
-Code/.env.example says:
-src/lib/extractor.js:42
-OPENROUTER_API_KEYS or OPENROUTER_API_KEY
-
-src/lib/extractor.js:159
-default nvidia/nemotron-nano-9b-v2:free
-
-.env.example:9-12 same.
-
-This mismatch will confuse future you/agents.
-
-Fix:
-- Pick one convention.
-- I’d update code to support both:
-  - OPENROUTER_API_KEYS comma-separated
-  - OPENROUTER_API_KEY
-  - OPENROUTER_API_KEY_1..N
-- Change default/example model to qwen/qwen3-235b-a22b-2507 if that’s the intended production model.
-
-5. Add useful DB indexes before dashboard/queue grow
+4. Add useful DB indexes before dashboard/queue grow
 
 Current queries likely fine for 134 live items, but these will matter later:
 
@@ -126,7 +98,7 @@ Recommended indexes:
 - changes(detected_at, change_type)
 - maybe items(source_id, removed_at, last_seen_at) for removal scan
 
-6. Add README / operational docs
+5. Add README / operational docs
 
 There is no README.
 
@@ -140,7 +112,7 @@ Minimum useful README:
 - known bot-block/CAPTCHA behavior
 - queue behavior and OpenRouter key rotation
 
-7. Avoid vendored/minified htmx in grep/static checks or document it
+6. Avoid vendored/minified htmx in grep/static checks or document it
 
 public/js/htmx.min.js is committed. That’s acceptable for a small local app, but it pollutes searches and syntax/static scans.
 
@@ -151,8 +123,7 @@ Options:
 
 Suggested next implementation order:
 
-1. Add real tests around scorer, source validation, queue, and fresh DB smoke boot.
-2. Align OpenRouter config/defaults and add output validation.
-3. Decide item/source identity model before adding more data/features. This is the big architectural one.
-4. Add DB indexes after checking query plans on the real DB size.
-5. Add README / operational docs.
+1. Add source/listing identity regression tests, then implement the chosen identity model (`source_items` if overlapping sources matter).
+2. Add DB indexes after checking query plans on the real DB size.
+3. Add README / operational docs.
+4. Decide whether to keep vendored `public/js/htmx.min.js`, exclude it from checks, or replace it with npm/CDN handling.
