@@ -22,6 +22,7 @@
         <div class="item-card__thumb item-card__thumb--placeholder"></div>
       </a>
     {% endif %}
+    <span class="item-card__price">{{ formatPrice(item.price, item.price_text) }}</span>
     {% if item.score !== null and item.score !== undefined %}
       <span class="score-badge score-badge--{{ scoreLabel(item.score) }} score-badge--overlay" title="GPU-Score">{{ item.score }}</span>
     {% endif %}
@@ -37,7 +38,6 @@
         <div class="item-card__title" title="{{ item.title }}">{{ item.title }}</div>
       {% endif %}
       <div class="item-card__meta">
-        <span class="item-card__price">{{ formatPrice(item.price, item.price_text) }}</span>
         {% if item.location %}<span class="item-card__location">{{ item.location }}</span>{% endif %}
       </div>
       <div class="item-card__source">{{ item.source_name }} · {{ relativeTime(item.first_seen_at) }}</div>

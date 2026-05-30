@@ -285,7 +285,25 @@ tbody.source-inactive .toggle-btn { opacity: 1; }
 .item-card__title--specs { display: block; font-size: .75rem; font-family: ui-monospace, 'SF Mono', Consolas, monospace; color: var(--text-muted); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
 .item-card__title--pending { color: var(--text-muted); font-style: italic; font-size: .8rem; }
 .item-card__meta { display: flex; justify-content: space-between; font-size: .75rem; margin-bottom: .2rem; }
-.item-card__price { font-weight: 600; color: var(--accent); }
+.item-card__price {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  z-index: 12;
+  max-width: calc(100% - 90px);
+  padding: .12rem .5rem;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  color: var(--accent);
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .item-card__source { font-size: .7rem; color: var(--text-muted); }
 
 /* ── Item card dropdown menu ── */
