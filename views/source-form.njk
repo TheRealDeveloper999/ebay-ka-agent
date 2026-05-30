@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header">
   <h1>{{ title }}</h1>
-  <a class="btn" href="/sources">← Zurück</a>
+  <a class="btn" href="/sources">← Back</a>
 </div>
 
 {% if errors.length %}
@@ -17,26 +17,26 @@
 <form class="form-card" method="POST" action="{{ action }}">
   <div class="form-group">
     <label for="name">Name <span class="required">*</span></label>
-    <input type="text" id="name" name="name" value="{{ source.name }}" required placeholder="z.B. Autos München">
+    <input type="text" id="name" name="name" value="{{ source.name }}" required placeholder="e.g. cars Munich">
   </div>
 
   <div class="form-group">
-    <label for="url">Kategorie-URL <span class="required">*</span></label>
+    <label for="url">Category URL <span class="required">*</span></label>
     <input type="url" id="url" name="url" value="{{ source.url }}" required
            placeholder="https://www.kleinanzeigen.de/s-autos/c216">
-    <small>Vollständige URL einer Kategorie- oder Suchseite auf kleinanzeigen.de</small>
+    <small>Full URL of a category or search page on kleinanzeigen.de</small>
   </div>
 
   <div class="form-row">
     <div class="form-group">
-      <label for="interval">Intervall (Minuten) <span class="required">*</span></label>
+      <label for="interval">Interval (minutes) <span class="required">*</span></label>
       <input type="number" id="interval" name="interval" value="{{ source.interval or 30 }}" min="5" max="1440">
     </div>
 
     <div class="form-group form-group--checkbox">
       <label>
         <input type="checkbox" name="active" {{ 'checked' if source.active != 0 }}>
-        Aktiv
+        >Active<
       </label>
     </div>
   </div>
@@ -44,24 +44,24 @@
   <fieldset class="form-fieldset">
     <legend>Filter (optional)</legend>
     <div class="form-group">
-      <label for="keyword">Stichwort</label>
+      <label for="keyword">Keyword</label>
       <input type="text" id="keyword" name="keyword" value="{{ source.keyword }}" placeholder="z.B. BMW, iPhone 14">
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label for="min_price">Mindestpreis (€)</label>
+        <label for="min_price">Minimum price (€)</label>
         <input type="number" id="min_price" name="min_price" value="{{ source.min_price }}" min="0" step="0.01">
       </div>
       <div class="form-group">
-        <label for="max_price">Höchstpreis (€)</label>
+        <label for="max_price">Maximum price (€)</label>
         <input type="number" id="max_price" name="max_price" value="{{ source.max_price }}" min="0" step="0.01">
       </div>
     </div>
   </fieldset>
 
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">Speichern</button>
-    <a class="btn" href="/sources">Abbrechen</a>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn" href="/sources">Cancel</a>
   </div>
 </form>
 {% endblock %}
@@ -73,7 +73,7 @@
   const minEl = document.getElementById('min_price');
   const maxEl = document.getElementById('max_price');
 
-  // KA price format: /preis:MIN:MAX/ (colons, either side can be empty)
+  // KA price URL segment format: /preis:MIN:MAX/ (colons, either side can be empty)
   const PRICE_RE = /\/preis:(\d*):(\d*)/;
 
   function parsePrice(url) {

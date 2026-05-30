@@ -27,7 +27,7 @@ async function scrapeListingPage(page, url, filters = {}) {
     const found = await page.waitForSelector('article.aditem, li[data-adid]', { timeout: 15000 }).catch(() => null);
     if (!found) {
       // Page 1 missing elements = real problem (bot-block, CAPTCHA, broken URL)
-      if (pageNum === 0) throw new Error('Keine Anzeigen-Elemente auf Seite 1 gefunden — Bot-Block, CAPTCHA oder Seitenstruktur geändert?');
+      if (pageNum === 0) throw new Error('No listing elements found on page 1 — bot block, CAPTCHA, or page structure changed?');
       // Later pages: simply no more results — stop pagination
       break;
     }

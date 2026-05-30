@@ -1,21 +1,21 @@
 {% extends "layouts/base.njk" %}
 
-{% block title %}Warteschlange{% endblock %}
+{% block title %}Queue{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>KI-Analyse Warteschlange</h1>
+  <h1>AI Analysis Queue</h1>
 </div>
 
 <div class="section queue-graph-section">
   <div class="queue-graph-header">
-    <h2>Durchsatz — letzte 2 Minuten</h2>
+    <h2>Throughput — last 2 minutes</h2>
     <div class="queue-graph-controls">
       <div class="queue-graph-legend">
-        <span class="legend-dot" style="background:var(--green)"></span> Verarbeitet
-        <span class="legend-dot" style="background:var(--red)"></span> Fehler
+        <span class="legend-dot" style="background:var(--green)"></span> Processed
+        <span class="legend-dot" style="background:var(--red)"></span> Errors
       </div>
-      <div class="queue-graph-interval" role="group" aria-label="Aktualisierungsintervall">
+      <div class="queue-graph-interval" role="group" aria-label="Refresh interval">
         <button class="btn btn-sm" data-interval="2000">2s</button>
         <button class="btn btn-sm btn-active" data-interval="5000">5s</button>
         <button class="btn btn-sm" data-interval="10000">10s</button>
@@ -23,11 +23,11 @@
     </div>
   </div>
   <canvas id="queue-graph"></canvas>
-  <p id="queue-graph-note" class="queue-graph-note">Sammle Daten…</p>
+  <p id="queue-graph-note" class="queue-graph-note">Collecting data…</p>
 </div>
 
 <div class="section">
-  <h2>Aktuelle Einträge</h2>
+  <h2>Current entries</h2>
   <div id="queue-stats-wrap"
        hx-get="/queue/stats"
        hx-trigger="every 2s"
@@ -88,7 +88,7 @@
     ctx.textAlign = 'center';
     ctx.fillText('–2m', PAD_L, H - 6);
     ctx.fillText('–1m', PAD_L + plotW / 2, H - 6);
-    ctx.fillText('jetzt', W - PAD_R, H - 6);
+    ctx.fillText('now', W - PAD_R, H - 6);
 
     function xPos(i, len) {
       // anchor newest point (i = len-1) to right edge
@@ -140,14 +140,14 @@
 
         const total = doneDelta.reduce((a, b) => a + b, 0);
         const errors = failedDelta.reduce((a, b) => a + b, 0);
-        note.textContent = `${total} verarbeitet, ${errors} Fehler (letzte 2 Min.)${data.paused ? ' · Pausiert noch ' + data.pauseMinutesLeft + ' Min.' : ''}`;
+        note.textContent = `${total} processed, ${errors} errors (last 2 min.)${data.paused ? ' · Paused for ' + data.pauseMinutesLeft + ' more min.' : ''}`;
       }
       lastDone = data.done;
       lastFailed = data.failed;
 
       draw();
     } catch (e) {
-      note.textContent = 'Verbindungsfehler';
+      note.textContent = 'Connection error';
     }
     pollTimer = setTimeout(poll, pollInterval);
   }

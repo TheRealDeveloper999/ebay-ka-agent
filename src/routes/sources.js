@@ -20,18 +20,18 @@ const parseOptionalFloat = v => (v !== '' && v != null) ? parseFloat(v) : null;
 
 function validateSource(body) {
   const errors = [];
-  if (!body.name || !body.name.trim()) errors.push('Name ist erforderlich');
-  if (!body.url || !body.url.trim()) errors.push('URL ist erforderlich');
-  if (body.url && !isAllowedUrl(body.url)) errors.push('URL muss eine kleinanzeigen.de-Seite sein (https://www.kleinanzeigen.de/...)');
+  if (!body.name || !body.name.trim()) errors.push('Name is required');
+  if (!body.url || !body.url.trim()) errors.push('URL is required');
+  if (body.url && !isAllowedUrl(body.url)) errors.push('URL must be a kleinanzeigen.de page (https://www.kleinanzeigen.de/...)');
   const interval = parseInt(body.interval, 10);
-  if (isNaN(interval) || interval < 5) errors.push('Intervall muss mindestens 5 Minuten betragen');
-  if (!isNaN(interval) && interval > 1440) errors.push('Intervall darf maximal 1440 Minuten (24 h) betragen');
+  if (isNaN(interval) || interval < 5) errors.push('Interval must be at least 5 minutes');
+  if (!isNaN(interval) && interval > 1440) errors.push('Interval may not exceed 1440 minutes (24 h)');
   const min = parseOptionalFloat(body.min_price);
   const max = parseOptionalFloat(body.max_price);
-  if (min !== null && isNaN(min)) errors.push('Mindestpreis muss eine Zahl sein');
-  if (max !== null && isNaN(max)) errors.push('Höchstpreis muss eine Zahl sein');
+  if (min !== null && isNaN(min)) errors.push('Min. price must be a number');
+  if (max !== null && isNaN(max)) errors.push('Max. price must be a number');
   if (min !== null && max !== null && !isNaN(min) && !isNaN(max) && max < min)
-    errors.push('Höchstpreis muss größer oder gleich dem Mindestpreis sein');
+    errors.push('Max. price must be greater than or equal to min. price');
   return errors;
 }
 
@@ -42,13 +42,13 @@ router.get('/sources', (req, res) => {
 });
 
 router.get('/sources/new', (req, res) => {
-  res.render('source-form.njk', { source: {}, errors: [], page: 'sources', action: '/sources', method: 'POST', title: 'Neue Quelle' });
+  res.render('source-form.njk', { source: {}, errors: [], page: 'sources', action: '/sources', method: 'POST', title: 'New source' });
 });
 
 router.post('/sources', (req, res) => {
   const errors = validateSource(req.body);
   if (errors.length) {
-    return res.render('source-form.njk', { source: req.body, errors, page: 'sources', action: '/sources', method: 'POST', title: 'Neue Quelle' });
+    return res.render('source-form.njk', { source: req.body, errors, page: 'sources', action: '/sources', method: 'POST', title: 'New source' });
   }
   const db = getDb();
   const result = db.prepare(`
@@ -72,7 +72,7 @@ router.get('/sources/:id/edit', (req, res) => {
   const db = getDb();
   const source = db.prepare('SELECT * FROM sources WHERE id = ?').get(req.params.id);
   if (!source) return res.status(404).send('Not found');
-  res.render('source-form.njk', { source, errors: [], page: 'sources', action: `/sources/${source.id}`, method: 'POST', title: 'Quelle bearbeiten' });
+  res.render('source-form.njk', { source, errors: [], page: 'sources', action: `/sources/${source.id}`, method: 'POST', title: 'Edit source' });
 });
 
 router.post('/sources/:id', (req, res) => {
@@ -80,7 +80,7 @@ router.post('/sources/:id', (req, res) => {
   if (errors.length) {
     const db = getDb();
     const source = { ...db.prepare('SELECT * FROM sources WHERE id = ?').get(req.params.id), ...req.body };
-    return res.render('source-form.njk', { source, errors, page: 'sources', action: `/sources/${req.params.id}`, method: 'POST', title: 'Quelle bearbeiten' });
+    return res.render('source-form.njk', { source, errors, page: 'sources', action: `/sources/${req.params.id}`, method: 'POST', title: 'Edit source' });
   }
   const db = getDb();
   db.prepare(`

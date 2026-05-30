@@ -45,7 +45,7 @@ router.post('/items/:id/extract', (req, res) => {
   if (!item.description) {
     return res.render('partials/item-specs.njk', {
       specs: null, itemId: item.id, queueEntry: null,
-      error: 'Keine Beschreibung vorhanden — bitte erst scrapen.',
+      error: 'No description available — please scrape first.',
     });
   }
 

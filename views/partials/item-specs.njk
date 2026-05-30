@@ -21,7 +21,7 @@
         <tr><th>RAM</th><td>{{ specs.ram_gb }} GB{% if specs.ram_type %} {{ specs.ram_type }}{% endif %}</td></tr>
       {% endif %}
       {% if specs.storage %}
-        <tr><th>Speicher</th><td>{{ specs.storage }}</td></tr>
+        <tr><th>Storage</th><td>{{ specs.storage }}</td></tr>
       {% endif %}
       {% if specs.motherboard %}
         <tr><th>Mainboard</th><td>{{ specs.motherboard }}</td></tr>
@@ -30,7 +30,7 @@
         <tr><th>OS</th><td>{{ specs.os }}</td></tr>
       {% endif %}
       {% if specs.condition %}
-        <tr><th>Zustand</th><td>{{ specs.condition }}</td></tr>
+        <tr><th>Condition</th><td>{{ specs.condition }}</td></tr>
       {% endif %}
     </table>
   {% endif %}
@@ -38,18 +38,18 @@
   {% if queueEntry and queueEntry.status in ['pending', 'processing'] %}
     <div class="specs-pending">
       <span class="spinner"></span>
-      {{ 'Wird analysiert…' if queueEntry.status == 'processing' else 'In Warteschlange…' }}
+      {{ 'Analyzing…' if queueEntry.status == 'processing' else 'Queued…' }}
     </div>
   {% else %}
     {% if queueEntry and queueEntry.status == 'failed' %}
-      <p class="specs-error">Analyse fehlgeschlagen: {{ queueEntry.last_error }}</p>
+      <p class="specs-error">Analysis failed: {{ queueEntry.last_error }}</p>
     {% endif %}
     <button class="btn btn-sm {{ 'btn-extract-redo' if specs }}"
             hx-post="/items/{{ itemId }}/extract"
             hx-target="#item-specs"
             hx-swap="outerHTML"
             hx-indicator="#extract-spinner">
-      {{ 'Neu analysieren' if specs else 'KI-Analyse starten' }}
+      {{ 'Analyze again' if specs else 'Start AI analysis' }}
     </button>
     <span id="extract-spinner" class="htmx-indicator spinner"></span>
   {% endif %}

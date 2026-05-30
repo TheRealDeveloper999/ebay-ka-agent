@@ -7,9 +7,9 @@
     Scraping…
   </span>
 {% elif error %}
-  <span class="scrape-result scrape-result--error">Fehler: {{ error }}</span>
+  <span class="scrape-result scrape-result--error">Error: {{ error }}</span>
 {% elif stats %}
   <span class="scrape-result scrape-result--ok">
-    Fertig — {{ stats.newItems }} neu, {{ stats.changedItems }} geändert, {{ stats.removedItems }} entfernt
+    Done — {{ stats.newItems }} new, {{ stats.changedItems }} changed, {{ stats.removedItems }} removed
   </span>
 {% endif %}

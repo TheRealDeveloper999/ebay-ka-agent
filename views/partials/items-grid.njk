@@ -18,14 +18,14 @@
             hx-get="/dashboard/items?sort=date&page=1"
             hx-target="#items-grid-wrap"
             hx-swap="innerHTML">
-      Neueste
+      Newest
     </button>
   </div>
-  <span class="items-grid-total">{{ total }} Anzeigen</span>
+  <span class="items-grid-total">{{ total }} listings</span>
 </div>
 
 {% if recentItems.length == 0 %}
-  <p class="empty-state">Noch keine Anzeigen gefunden. <a href="/sources/new">Quelle hinzufügen</a></p>
+  <p class="empty-state">No listings found yet. <a href="/sources/new">Add source</a></p>
 {% else %}
   <div class="items-grid">
     {% for item in recentItems %}
@@ -39,9 +39,9 @@
       <button class="btn btn-sm"
               hx-get="/dashboard/items?sort={{ sort }}&page={{ currentPage - 1 }}"
               hx-target="#items-grid-wrap"
-              hx-swap="innerHTML">← Zurück</button>
+              hx-swap="innerHTML">← Previous</button>
     {% else %}
-      <button class="btn btn-sm" disabled>← Zurück</button>
+      <button class="btn btn-sm" disabled>← Previous</button>
     {% endif %}
 
     <span class="pagination__info">{{ currentPage }} / {{ totalPages }}</span>
@@ -50,9 +50,9 @@
       <button class="btn btn-sm"
               hx-get="/dashboard/items?sort={{ sort }}&page={{ currentPage + 1 }}"
               hx-target="#items-grid-wrap"
-              hx-swap="innerHTML">Weiter →</button>
+              hx-swap="innerHTML">Next →</button>
     {% else %}
-      <button class="btn btn-sm" disabled>Weiter →</button>
+      <button class="btn btn-sm" disabled>Next →</button>
     {% endif %}
   </div>
   {% endif %}

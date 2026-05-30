@@ -15,7 +15,7 @@
       {% if sl %}
         <div class="item-card__title item-card__title--specs" title="{{ sl }}">{{ sl }}</div>
       {% elif item.queue_status in ['pending', 'processing'] %}
-        <div class="item-card__title item-card__title--pending">Wird analysiert…</div>
+        <div class="item-card__title item-card__title--pending">Analyzing…</div>
       {% else %}
         <div class="item-card__title" title="{{ item.title }}">{{ item.title }}</div>
       {% endif %}
@@ -27,14 +27,14 @@
     </div>
   </a>
   <div class="item-card__menu">
-    <button class="item-card__menu-btn" type="button" aria-label="Optionen">···</button>
+    <button class="item-card__menu-btn" type="button" aria-label="Options">···</button>
     <ul class="item-card__dropdown" hidden>
       <li>
         <button type="button"
                 hx-post="/items/{{ item.id }}/hide"
                 hx-target="closest .item-card"
                 hx-swap="delete">
-          Ausblenden
+          Hide
         </button>
       </li>
     </ul>

@@ -18,23 +18,23 @@ function relativeTime(isoString) {
   if (!isoString) return '–';
   const diff = Date.now() - new Date(isoString).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'gerade eben';
-  if (mins < 60) return `vor ${mins} Min.`;
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `vor ${hours} Std.`;
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
+  return `${days} day${days !== 1 ? 's' : ''} ago`;
 }
 
 function changeTypeLabel(type) {
   const labels = {
-    new: 'Neu',
-    price_drop: 'Preissenkung',
-    price_rise: 'Preiserhöhung',
-    title_changed: 'Titel geändert',
-    description_changed: 'Beschreibung geändert',
-    removed: 'Entfernt',
-    relisted: 'Wieder eingestellt',
+    new: 'New',
+    price_drop: 'Price drop',
+    price_rise: 'Price rise',
+    title_changed: 'Title changed',
+    description_changed: 'Description changed',
+    removed: 'Removed',
+    relisted: 'Relisted',
   };
   return labels[type] || type;
 }
@@ -53,7 +53,7 @@ function changeTypeBadgeClass(type) {
 }
 
 function queueStatusLabel(status) {
-  return { pending: 'Ausstehend', processing: 'Aktiv', done: 'Erledigt', failed: 'Fehlgeschlagen' }[status] || status;
+  return { pending: 'Pending', processing: 'Active', done: 'Done', failed: 'Failed' }[status] || status;
 }
 
 function queueStatusBadgeClass(status) {

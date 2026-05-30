@@ -1,17 +1,17 @@
 {% extends "layouts/base.njk" %}
 
-{% block title %}Quellen{% endblock %}
+{% block title %}Sources{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>Quellen</h1>
-  <a class="btn btn-primary" href="/sources/new">+ Neue Quelle</a>
+  <h1>Sources</h1>
+  <a class="btn btn-primary" href="/sources/new">+ New source</a>
 </div>
 
 {% if sources.length == 0 %}
   <div class="empty-state-box">
-    <p>Noch keine Quellen konfiguriert.</p>
-    <a class="btn btn-primary" href="/sources/new">Erste Quelle hinzufügen</a>
+    <p>No sources configured yet.</p>
+    <a class="btn btn-primary" href="/sources/new">Add first source</a>
   </div>
 {% else %}
   <div class="table-wrapper">
@@ -20,10 +20,10 @@
         <tr>
           <th>Name</th>
           <th>URL</th>
-          <th>Anzeigen</th>
-          <th>Zuletzt gescraped</th>
-          <th>Intervall</th>
-          <th>Aktionen</th>
+          <th>Listings</th>
+          <th>Last scraped</th>
+          <th>Interval</th>
+          <th>Actions</th>
         </tr>
       </thead>
       {% for source in sources %}

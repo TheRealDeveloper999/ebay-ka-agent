@@ -1,7 +1,7 @@
 'use strict';
 
 // Returns true if the ad page still shows a live listing.
-// Kleinanzeigen redirects removed ads to search/home, or shows a "nicht mehr verfügbar" banner.
+// Kleinanzeigen redirects removed ads to search/home, or shows a "no longer available" banner.
 async function verifyItemAvailable(page, url) {
   try {
     const resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });

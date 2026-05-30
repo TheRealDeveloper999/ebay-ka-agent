@@ -4,14 +4,14 @@
             hx-post="/items/{{ item.id }}/unhide"
             hx-target="#item-hide-toggle"
             hx-swap="outerHTML">
-      Wieder einblenden
+      Show again
     </button>
   {% else %}
     <button class="btn"
             hx-post="/items/{{ item.id }}/hide"
             hx-target="#item-hide-toggle"
             hx-swap="outerHTML">
-      Ausblenden
+      Hide
     </button>
   {% endif %}
 </span>

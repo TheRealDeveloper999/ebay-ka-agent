@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,12 +13,12 @@
     <a class="nav-brand" href="/">eBay KA Agent</a>
     <ul class="nav-links">
       <li><a href="/" class="{{ 'active' if page == 'dashboard' }}">Dashboard</a></li>
-      <li><a href="/changes" class="{{ 'active' if page == 'changes' }}">Änderungen</a></li>
+      <li><a href="/changes" class="{{ 'active' if page == 'changes' }}">Changes</a></li>
       <li class="nav-settings {{ 'nav-settings--active' if page in ['sources', 'queue'] }}">
-        <button class="nav-settings__btn" aria-label="Einstellungen" aria-expanded="false">···</button>
+        <button class="nav-settings__btn" aria-label="Settings" aria-expanded="false">···</button>
         <ul class="nav-settings__dropdown" hidden>
-          <li><a href="/queue" class="{{ 'active' if page == 'queue' }}">Warteschlange</a></li>
-          <li><a href="/sources" class="{{ 'active' if page == 'sources' }}">Quellen</a></li>
+          <li><a href="/queue" class="{{ 'active' if page == 'queue' }}">Queue</a></li>
+          <li><a href="/sources" class="{{ 'active' if page == 'sources' }}">Sources</a></li>
         </ul>
       </li>
     </ul>

@@ -154,13 +154,13 @@ async function callApi(apiKey, model, description) {
 
 // --- Public ---
 async function extractSpecs(description) {
-  if (keyStates.length === 0) throw taggedError(API_ERROR, 'OPENROUTER_API_KEY(S) nicht konfiguriert');
+  if (keyStates.length === 0) throw taggedError(API_ERROR, 'OPENROUTER_API_KEY(S) not configured');
 
   const model = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-nano-9b-v2:free';
 
   while (true) {
     const keyState = getAvailableKey();
-    if (!keyState) throw taggedError(API_ERROR, 'Alle API-Keys haben das Tageslimit erreicht');
+    if (!keyState) throw taggedError(API_ERROR, 'All API keys have reached their daily limit');
 
     try {
       return await callApi(keyState.key, model, description);
