@@ -2,6 +2,7 @@
 
 const express = require('express');
 const nunjucks = require('nunjucks');
+const log = require('./lib/logger');
 const path = require('path');
 const { formatPrice, formatDate, relativeTime, changeTypeLabel, changeTypeBadgeClass, queueStatusLabel, queueStatusBadgeClass } = require('./lib/formatters');
 const { scoreLabel, specLine } = require('./lib/scorer');
@@ -62,10 +63,11 @@ const escHtml = s => String(s)
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err);
+  log.error(`${req.method} ${req.path} — ${err.message}`);
+  if (err.stack) log.error(err.stack);
   const isHtmx = req.headers['hx-request'];
   if (isHtmx) {
-    return res.status(500).send(`<p class="error">Fehler: ${escHtml(err.message)}</p>`);
+    return res.status(500).send(`<p class="error">Error: ${escHtml(err.message)}</p>`);
   }
   res.status(500).render('error.njk', { error: err, page: '' });
 });
