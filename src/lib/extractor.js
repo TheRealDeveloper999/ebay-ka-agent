@@ -38,9 +38,139 @@ function isRateLimitMessage(message) {
   return /rate.?limit|per.?day|per.?min|quota|credits/i.test(message);
 }
 
+const DEFAULT_MODEL = 'qwen/qwen3-235b-a22b-2507';
+const SPEC_FIELDS = [
+  'cpu',
+  'cpu_variant',
+  'gpu',
+  'vram_gb',
+  'ram_gb',
+  'ram_type',
+  'storage',
+  'motherboard',
+  'os',
+  'condition',
+];
+
+function getConfiguredApiKeys(env = process.env) {
+  const keys = [];
+  const addKeys = value => String(value || '')
+    .split(',')
+    .map(k => k.trim())
+    .filter(Boolean)
+    .forEach(k => keys.push(k));
+
+  addKeys(env.OPENROUTER_API_KEYS);
+  addKeys(env.OPENROUTER_API_KEY);
+
+  Object.keys(env)
+    .filter(name => /^OPENROUTER_API_KEY_\d+$/.test(name))
+    .sort((a, b) => parseInt(a.match(/\d+$/)[0], 10) - parseInt(b.match(/\d+$/)[0], 10))
+    .forEach(name => addKeys(env[name]));
+
+  return [...new Set(keys)];
+}
+
+function buildChatRequestBody(model, description) {
+  return {
+    model,
+    messages: [{ role: 'user', content: PROMPT + description }],
+    temperature: 0.1,
+    response_format: { type: 'json_object' },
+  };
+}
+
+function findJsonObjectEnd(text) {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (ch === '\\') {
+      escaped = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === '{') depth += 1;
+    if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+
+  return -1;
+}
+
+function assertStringOrNull(specs, field) {
+  if (specs[field] !== null && typeof specs[field] !== 'string') {
+    throw taggedError(MODEL_ERROR, `${field} must be string or null`);
+  }
+}
+
+function assertNumberOrNull(specs, field) {
+  if (specs[field] !== null && typeof specs[field] !== 'number') {
+    throw taggedError(MODEL_ERROR, `${field} must be number or null`);
+  }
+}
+
+function validateSpecs(specs) {
+  if (!specs || typeof specs !== 'object' || Array.isArray(specs)) {
+    throw taggedError(MODEL_ERROR, 'Model JSON must be an object');
+  }
+
+  for (const field of SPEC_FIELDS) {
+    if (!Object.prototype.hasOwnProperty.call(specs, field)) {
+      throw taggedError(MODEL_ERROR, `missing field: ${field}`);
+    }
+  }
+  for (const field of Object.keys(specs)) {
+    if (!SPEC_FIELDS.includes(field)) {
+      throw taggedError(MODEL_ERROR, `unexpected field: ${field}`);
+    }
+  }
+
+  ['cpu', 'cpu_variant', 'gpu', 'storage', 'motherboard', 'os'].forEach(field => assertStringOrNull(specs, field));
+  ['vram_gb', 'ram_gb'].forEach(field => assertNumberOrNull(specs, field));
+
+  if (![null, 'DDR4', 'DDR5'].includes(specs.ram_type)) {
+    throw taggedError(MODEL_ERROR, 'ram_type must be DDR4, DDR5, or null');
+  }
+  if (![null, 'new', 'used'].includes(specs.condition)) {
+    throw taggedError(MODEL_ERROR, 'condition must be new, used, or null');
+  }
+
+  return specs;
+}
+
+function parseModelSpecs(content) {
+  const text = String(content || '').trim();
+  if (!text.startsWith('{')) throw taggedError(MODEL_ERROR, 'Model response must be a single JSON object');
+
+  const end = findJsonObjectEnd(text);
+  if (end === -1) throw taggedError(MODEL_ERROR, 'Model returned malformed JSON');
+  if (text.slice(end + 1).trim()) throw taggedError(MODEL_ERROR, 'Model response must be a single JSON object');
+
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw taggedError(MODEL_ERROR, 'Model returned malformed JSON');
+  }
+
+  return validateSpecs(parsed);
+}
+
 // --- Key state ---
-const rawKeys = (process.env.OPENROUTER_API_KEYS || process.env.OPENROUTER_API_KEY || '')
-  .split(',').map(k => k.trim()).filter(Boolean);
+const rawKeys = getConfiguredApiKeys(process.env);
 
 const keyStates = rawKeys.map(key => ({ key, exhaustedUntil: null }));
 
@@ -103,11 +233,7 @@ async function callApi(apiKey, model, description) {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: PROMPT + description }],
-        temperature: 0.1,
-      }),
+      body: JSON.stringify(buildChatRequestBody(model, description)),
     });
   } catch (err) {
     clearTimeout(timer);
@@ -142,21 +268,14 @@ async function callApi(apiKey, model, description) {
   }
 
   const content = data.choices?.[0]?.message?.content || '';
-  const match = content.match(/\{[\s\S]*\}/);
-  if (!match) throw taggedError(MODEL_ERROR, 'No JSON object found in model response');
-
-  try {
-    return JSON.parse(match[0]);
-  } catch {
-    throw taggedError(MODEL_ERROR, 'Model returned malformed JSON');
-  }
+  return parseModelSpecs(content);
 }
 
 // --- Public ---
 async function extractSpecs(description) {
   if (keyStates.length === 0) throw taggedError(API_ERROR, 'OPENROUTER_API_KEY(S) not configured');
 
-  const model = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-nano-9b-v2:free';
+  const model = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
 
   while (true) {
     const keyState = getAvailableKey();
@@ -174,4 +293,13 @@ async function extractSpecs(description) {
   }
 }
 
-module.exports = { extractSpecs, getKeyStatuses, getKeyCount, getEarliestKeyReset };
+module.exports = {
+  extractSpecs,
+  getKeyStatuses,
+  getKeyCount,
+  getEarliestKeyReset,
+  DEFAULT_MODEL,
+  buildChatRequestBody,
+  getConfiguredApiKeys,
+  parseModelSpecs,
+};
