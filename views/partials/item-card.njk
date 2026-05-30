@@ -1,15 +1,32 @@
 <div class="item-card">
-  <a class="item-card__link" href="/items/{{ item.id }}">
-    <div class="item-card__thumb-wrap" title="{{ item.title }}">
-      {% if item.thumbnail_url %}
-        <img class="item-card__thumb" src="{{ item.thumbnail_url }}" alt="" loading="lazy">
-      {% else %}
+  <div class="item-card__thumb-wrap" title="{{ item.title }}">
+    {% if item.card_image_urls and item.card_image_urls.length %}
+      <div class="item-card__slider" data-slider aria-label="Images for {{ item.title }}">
+        <a class="item-card__thumb-link" href="/items/{{ item.id }}" aria-label="Open {{ item.title }}">
+          {% for img in item.card_image_urls %}
+            <img class="item-card__thumb item-card__slide {{ 'is-active' if loop.first }}"
+                 {% if loop.first %}src="{{ img }}"{% else %}data-src="{{ img }}"{% endif %}
+                 alt=""
+                 loading="lazy"
+                 data-slide-index="{{ loop.index0 }}">
+          {% endfor %}
+        </a>
+        {% if item.card_image_urls.length > 1 %}
+          <button class="item-card__slider-btn item-card__slider-btn--prev" type="button" data-slider-prev aria-label="Previous image">‹</button>
+          <button class="item-card__slider-btn item-card__slider-btn--next" type="button" data-slider-next aria-label="Next image">›</button>
+          <span class="item-card__slider-count" data-slider-count>1/{{ item.card_image_urls.length }}</span>
+        {% endif %}
+      </div>
+    {% else %}
+      <a class="item-card__thumb-link" href="/items/{{ item.id }}" aria-label="Open {{ item.title }}">
         <div class="item-card__thumb item-card__thumb--placeholder"></div>
-      {% endif %}
-      {% if item.score !== null and item.score !== undefined %}
-        <span class="score-badge score-badge--{{ scoreLabel(item.score) }} score-badge--overlay" title="GPU-Score">{{ item.score }}</span>
-      {% endif %}
-    </div>
+      </a>
+    {% endif %}
+    {% if item.score !== null and item.score !== undefined %}
+      <span class="score-badge score-badge--{{ scoreLabel(item.score) }} score-badge--overlay" title="GPU-Score">{{ item.score }}</span>
+    {% endif %}
+  </div>
+  <a class="item-card__link" href="/items/{{ item.id }}">
     <div class="item-card__body">
       {% set sl = specLine(item.specs) %}
       {% if sl %}
