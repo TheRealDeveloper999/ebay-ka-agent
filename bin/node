@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$HOME/.nvm/nvm.sh"
-nvm use 21.6.1 >/dev/null
-exec node "$@"
+NODE_BIN="$HOME/.nvm/versions/node/v21.6.1/bin/node"
+
+if [[ ! -x "$NODE_BIN" ]]; then
+  source "$HOME/.nvm/nvm.sh"
+  nvm install 21.6.1 >/dev/null
+fi
+
+exec "$NODE_BIN" "$@"
