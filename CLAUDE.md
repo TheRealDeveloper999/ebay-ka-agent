@@ -2,13 +2,13 @@
 
 ## Stack
 Node 21 (v21.6.1) / Express 4 / Nunjucks / SQLite (better-sqlite3) / HTMX 2 / Playwright.
-Run scripts with: `~/.nvm/versions/node/v21.6.1/bin/node <script>`
-Dev server: `~/.nvm/versions/node/v21.6.1/bin/node src/server.js`
+Run scripts with: `./bin/node <script>`
+Dev server: `./bin/node src/server.js`
 
 ## Hard rules (learned from past failures)
 
 ### Node version
-`better-sqlite3` is compiled against v21. Never run project scripts with the system Node (v26) — you get `ERR_DLOPEN_FAILED`. Always use `~/.nvm/versions/node/v21.6.1/bin/node`.
+`better-sqlite3` is compiled against v21. Never run project scripts with the system Node (v26) — you get `ERR_DLOPEN_FAILED`. Use `./bin/node` or explicitly load nvm Node v21.6.1.
 
 ### Server restart
 After any change to `src/app.js` globals (Nunjucks `addGlobal`, `addFilter`) or route registration, do a **full process restart** — not just `--watch` hot-reload. The `--watch` flag can serve a mix of old and new module state and produce confusing runtime errors (`recentItems.some is not a function`, undefined globals in templates).
@@ -33,7 +33,7 @@ When a route re-enqueues an item and re-renders a partial, always pass the **exi
 
 ## AI model
 `OPENROUTER_MODEL=qwen/qwen3-235b-a22b-2507`
-Key rotation: multiple keys in `.env` as `OPENROUTER_API_KEY_1`, `_2`, `_3`. Never log or expose keys.
+Key rotation: `.env` supports `OPENROUTER_API_KEYS` comma-separated, `OPENROUTER_API_KEY` single-key fallback, and numbered `OPENROUTER_API_KEY_1`, `_2`, `_3`. Use one style consistently. Never log or expose keys.
 
 ## Scoring
 `src/lib/scorer.js` — GPU scores are PassMark G3D Mark normalized to RTX 4090 = 100.
