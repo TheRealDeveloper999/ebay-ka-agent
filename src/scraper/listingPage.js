@@ -1,6 +1,7 @@
 'use strict';
 
 const MAX_PAGES = parseInt(process.env.MAX_PAGES_PER_SOURCE || '3', 10);
+const CARD_SELECTOR = 'article[data-adid], li[data-adid]';
 
 function randomDelay() {
   return new Promise(r => setTimeout(r, 500 + Math.random() * 1000));
@@ -36,7 +37,10 @@ async function scrapeListingPage(page, url, filters = {}) {
   let currentUrl = url;
 
   for (let pageNum = 0; pageNum < MAX_PAGES; pageNum++) {
-    await page.goto(currentUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const response = await page.goto(currentUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    if (response && !response.ok()) {
+      throw new Error(`Kleinanzeigen returned HTTP ${response.status()} on results page ${pageNum + 1}`);
+    }
 
     // Accept cookie consent if present
     const consentBtn = page.locator('button[data-testid="gdpr-banner-accept"], #gdpr-banner-accept, button:has-text("Alle akzeptieren")').first();
@@ -46,7 +50,7 @@ async function scrapeListingPage(page, url, filters = {}) {
     }
 
     // Wait for listing cards
-    const found = await page.waitForSelector('article.aditem, li[data-adid]', { timeout: 15000 }).catch(() => null);
+    const found = await page.waitForSelector(CARD_SELECTOR, { timeout: 15000 }).catch(() => null);
     if (!found) {
       // Page 1 missing elements = real problem (bot-block, CAPTCHA, broken URL)
       if (pageNum === 0) throw new Error('No listing elements found on page 1 — bot block, CAPTCHA, or page structure changed?');
@@ -54,31 +58,39 @@ async function scrapeListingPage(page, url, filters = {}) {
       break;
     }
 
-    const pageCards = await page.evaluate(() => {
+    const pageCards = await page.evaluate(cardSelector => {
       const results = [];
-      // Try both known card selectors
-      const els = document.querySelectorAll('article.aditem[data-adid], li[data-adid]');
+      const els = document.querySelectorAll(cardSelector);
       for (const el of els) {
         const adId = el.getAttribute('data-adid');
-        if (!adId) continue;
-
-        const titleEl = el.querySelector('a.ellipsis, h2 a, .aditem-main--top a');
-        const priceEl = el.querySelector('.aditem-main--middle--price-shipping--price, p.aditem-main--middle--price');
-        const locationEl = el.querySelector('.aditem-main--top--left, .simpletag.tag-small');
-        const imgEl = el.querySelector('img');
+        const titleEl = el.querySelector('h3 a[href*="/s-anzeige/"], a.ellipsis, h2 a, .aditem-main--top a');
+        const title = titleEl?.textContent.trim();
         const linkEl = el.querySelector('a[href*="/s-anzeige/"]');
+        if (!adId || !title || !linkEl) continue;
+
+        // The current layout groups title, description, and price below the location row.
+        const details = titleEl.closest('h3')?.parentElement;
+        const priceEl = el.querySelector('.aditem-main--middle--price-shipping--price, p.aditem-main--middle--price')
+          || details?.querySelector(':scope > div > p');
+        const locationEl = el.querySelector('.aditem-main--top--left, .simpletag.tag-small')
+          || details?.previousElementSibling?.querySelector('span');
+        const imgEl = el.querySelector('img');
 
         results.push({
           external_id: adId,
-          title: titleEl ? titleEl.textContent.trim() : '',
+          title,
           price_text: priceEl ? priceEl.textContent.trim() : '',
           location: locationEl ? locationEl.textContent.trim() : '',
           thumbnail_url: imgEl ? (imgEl.dataset.src || imgEl.src) : '',
-          url: linkEl ? 'https://www.kleinanzeigen.de' + linkEl.getAttribute('href') : '',
+          url: linkEl.href,
         });
       }
       return results;
-    });
+    }, CARD_SELECTOR);
+
+    if (pageCards.length === 0) {
+      throw new Error(`Kleinanzeigen cards on results page ${pageNum + 1} contained no readable listings`);
+    }
 
     for (const card of pageCards) {
       if (!passesListingFilters(card, filters)) continue;
@@ -88,12 +100,12 @@ async function scrapeListingPage(page, url, filters = {}) {
     }
 
     // Check for next page
-    const nextBtn = await page.$('a[data-testid="srp-next-page-link"], a.pagination-next');
+    const nextBtn = await page.$('a[rel="next"], a[aria-label="Nächste"], a[data-testid="srp-next-page-link"], a.pagination-next');
     if (!nextBtn || pageNum >= MAX_PAGES - 1) break;
 
     const nextHref = await nextBtn.getAttribute('href');
     if (!nextHref) break;
-    currentUrl = nextHref.startsWith('http') ? nextHref : 'https://www.kleinanzeigen.de' + nextHref;
+    currentUrl = new URL(nextHref, page.url()).href;
 
     await randomDelay();
   }
