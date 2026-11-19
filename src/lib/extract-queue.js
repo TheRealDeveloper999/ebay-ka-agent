@@ -37,7 +37,21 @@ function reEnqueue(itemId) {
 }
 
 function getQueueEntry(itemId) {
-  return getDb().prepare('SELECT * FROM extract_queue WHERE item_id = ?').get(itemId);
+  const db = getDb();
+  const entry = db.prepare('SELECT * FROM extract_queue WHERE item_id = ?').get(itemId);
+  if (!entry) return null;
+
+  entry.queue_left = null;
+
+  if (entry.status === 'pending' || entry.status === 'processing') {
+    entry.queue_left = db.prepare(`
+      SELECT COUNT(*) as n
+      FROM extract_queue
+      WHERE status IN ('pending', 'processing')
+    `).get().n;
+  }
+
+  return entry;
 }
 
 // Atomically claim the next pending item and mark it as processing.

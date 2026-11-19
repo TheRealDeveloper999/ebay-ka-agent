@@ -358,3 +358,61 @@ describe('reEnqueue — race-condition safety and failed row reset', () => {
     assert.equal(row.status, 'pending');
   });
 });
+
+// ── queue-left display data ───────────────────────────────────────────────────
+
+describe('getQueueEntry — active queue left count', () => {
+  let dbPath;
+  let enqueue;
+  let getQueueEntry;
+  let db;
+  let sourceId;
+
+  before(() => {
+    dbPath = makeTempPath();
+    const dbMod = loadDb(dbPath);
+    db = dbMod.getDb();
+    applySchema(db);
+    sourceId = insertSource(db);
+
+    const qMod = require('../src/lib/extract-queue');
+    enqueue = qMod.enqueue;
+    getQueueEntry = qMod.getQueueEntry;
+  });
+
+  after(() => {
+    const { closeDb } = require('../src/db/index');
+    closeDb();
+    purgeDbModules();
+    try { fs.unlinkSync(dbPath); } catch {}
+  });
+
+  test('adds queue_left as the number of pending and processing queue entries', () => {
+    const doneId = insertItem(db, sourceId, { external_id: 'ext-left-done' });
+    const firstId = insertItem(db, sourceId, { external_id: 'ext-left-first' });
+    const secondId = insertItem(db, sourceId, { external_id: 'ext-left-second' });
+    const failedId = insertItem(db, sourceId, { external_id: 'ext-left-failed' });
+    const thirdId = insertItem(db, sourceId, { external_id: 'ext-left-third' });
+
+    for (const itemId of [doneId, firstId, secondId, failedId, thirdId]) enqueue(itemId);
+    db.prepare("UPDATE extract_queue SET status='done' WHERE item_id=?").run(doneId);
+    db.prepare("UPDATE extract_queue SET status='processing' WHERE item_id=?").run(firstId);
+    db.prepare("UPDATE extract_queue SET status='failed' WHERE item_id=?").run(failedId);
+
+    const row = getQueueEntry(secondId);
+
+    assert.equal(row.queue_left, 3);
+    assert.equal(row.queue_position, undefined);
+    assert.equal(row.queue_total, undefined);
+  });
+
+  test('does not add queue_left to done or failed entries', () => {
+    const itemId = insertItem(db, sourceId, { external_id: 'ext-left-not-active' });
+    enqueue(itemId);
+    db.prepare("UPDATE extract_queue SET status='done' WHERE item_id=?").run(itemId);
+
+    const row = getQueueEntry(itemId);
+
+    assert.equal(row.queue_left, null);
+  });
+});

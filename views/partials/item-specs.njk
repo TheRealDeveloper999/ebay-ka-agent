@@ -39,6 +39,9 @@
     <div class="specs-pending">
       <span class="spinner"></span>
       {{ 'Analyzing…' if queueEntry.status == 'processing' else 'Queued…' }}
+      {% if queueEntry.queue_left %}
+        <span class="specs-queue-left">{{ queueEntry.queue_left }} left</span>
+      {% endif %}
     </div>
   {% else %}
     {% if queueEntry and queueEntry.status == 'failed' %}
