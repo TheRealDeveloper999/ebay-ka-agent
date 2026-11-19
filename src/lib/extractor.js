@@ -20,6 +20,8 @@ Examples:
 "NVIDIA GeForce RTX 3070 Ti 8GB" → gpu:"RTX 3070 Ti" vram_gb:8
 "Samsung 970 Evo 500GB + Seagate 2TB HDD" → storage:"SSD 500gb, HDD 2tb"
 
+Use only hardware stated in the listing. Do not infer CPU family or model from a board, chipset, core count, or clock speed. Report RAM and VRAM only if the listing clearly assigns the amount to system RAM or GPU memory respectively. For shared or unassigned memory, use null for both. A GPU followed directly by its memory capacity counts as assigned GPU memory. For motherboard, require an actual model identifier. A brand or generic term alone (e.g. Asus Mainboard) means null.
+
 Listing:
 `;
 
