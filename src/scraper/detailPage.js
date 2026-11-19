@@ -11,6 +11,9 @@ async function verifyItemAvailable(page, url) {
     const finalUrl = page.url();
     const adIdMatch = url.match(/\/(\d+)-\d+-\d+/);
     if (adIdMatch && !finalUrl.includes(adIdMatch[1])) return false;
+    // Deleted ads can still return HTTP 200 and retain their description.
+    const deleted = await page.locator('.pvap-reserved-image-veil.imagebox-veil:not(.is-hidden) .icon-trash-light-gray-big').count();
+    if (deleted > 0) return false;
     // Check for the "not available" banner kleinanzeigen shows
     const unavailable = await page.$('#viewad-belated-fraud-warning, [data-testid="ad-not-found"], .notfound-headline').catch(() => null);
     if (unavailable) return false;
