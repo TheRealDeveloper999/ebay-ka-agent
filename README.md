@@ -4,12 +4,12 @@ Local eBay Kleinanzeigen monitor for saved search/source URLs. It scrapes listin
 
 ## Stack
 
-- Node.js `26.13.1`
-- Express 4
+- Node.js LTS
+- Express
 - Nunjucks
 - SQLite via `better-sqlite3`
 - Playwright
-- HTMX 2
+- HTMX
 
 Use the project wrapper to run direct Node commands with the version pinned in `.nvmrc`.
 
@@ -36,10 +36,9 @@ DB_PATH=./data/ka-agent.db
 PLAYWRIGHT_HEADLESS=true
 MAX_PAGES_PER_SOURCE=3
 MIN_SCRAPE_INTERVAL_MINUTES=5
-OPENROUTER_MODEL=qwen/qwen3-235b-a22b-2507
 ```
 
-OpenRouter keys are optional for scraping/listing tracking, but required for AI spec extraction and scoring. Supported key styles:
+Use `OPENROUTER_MODEL` in `.env` to configure the extraction model. See `.env.example` for the default configuration. OpenRouter keys are optional for scraping/listing tracking, but required for AI spec extraction and scoring. Supported key styles:
 
 ```env
 # Pick one style and use it consistently.
@@ -104,7 +103,6 @@ When a listing has a description and no extracted specs yet, it is queued for Op
 
 Extraction contract:
 
-- default model: `qwen/qwen3-235b-a22b-2507`
 - JSON-only output is requested
 - output is locally validated
 - malformed/ambiguous/invalid output becomes a model error and is retried/failed cleanly
@@ -145,7 +143,7 @@ Tests:
 ./bin/node --test test/*.test.js
 ```
 
-Equivalent npm scripts exist, but make sure the shell is using Node `26.13.1` before running them:
+Run `nvm use` from the repository root to select the Node.js version in `.nvmrc` before running the npm scripts:
 
 ```sh
 npm run check:syntax
@@ -182,6 +180,6 @@ Follow `precommit.md` for the full checklist. Short version:
 
 1. Preserve any existing git index/changelists.
 2. Make atomic commits.
-3. Use Node `26.13.1` / `./bin/node`.
+3. Use `./bin/node` for direct Node commands or `nvm use` before running npm scripts.
 4. Run syntax checks and tests.
 5. Browser-verify UI changes.

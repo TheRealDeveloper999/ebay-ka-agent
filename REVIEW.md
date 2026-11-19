@@ -2,9 +2,9 @@ codexp, I inspected the project, ran syntax/audit/smoke checks, and reviewed the
 
 This version keeps only currently relevant / not-yet-fixed improvement points. Items already implemented in the current commits were removed from the recommendation list.
 
-Checks run / current validation status:
-- JS syntax check with Node v21.6.1: OK
-- npm test with Node v21.6.1: OK (`126` tests passing)
+Checks run at the time of the review:
+- JS syntax check passed
+- `npm test` passed (`126` tests)
 - npm audit --omit=dev: 0 vulnerabilities after node-cron upgrade
 - Inline source-form script parse check: OK
 - Fresh temp-DB smoke initially exposed a schema drift bug: `extract_queue.worker_id` / `claimed_at` were used by the worker but missing from `schema.sql`. This was fixed by adding those columns to the fresh schema and is now covered by `test/db-queue.test.js`.
@@ -73,7 +73,7 @@ Remaining test priority:
 3. Keep AI extraction contract strict
 
 Implemented now:
-- `src/lib/extractor.js` uses the documented default model `qwen/qwen3-235b-a22b-2507`.
+- `src/lib/extractor.js` uses its default model when `OPENROUTER_MODEL` is unset.
 - `.env` supports comma-separated `OPENROUTER_API_KEYS`, single `OPENROUTER_API_KEY`, and numbered `OPENROUTER_API_KEY_1..N` conventions.
 - OpenRouter requests JSON-only output.
 - Model output is locally validated and malformed/ambiguous/missing/extra/invalid fields become model errors instead of silently flowing into scoring/UI.

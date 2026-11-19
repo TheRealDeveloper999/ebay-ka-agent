@@ -15,8 +15,7 @@ Use this checklist before committing, pushing, or saying the project is ready.
    - Keep mechanical formatting/renames separate from behavioral changes unless inseparable.
    - Tests should normally be committed with the behavior they verify.
 
-3. Use the project Node version.
-   - Required Node: `v26.13.1`.
+3. Use the Node.js version pinned in `.nvmrc`.
    - Prefer:
 
      ```bash
@@ -25,7 +24,7 @@ Use this checklist before committing, pushing, or saying the project is ready.
 
 ## Required checks
 
-Run these from the repository root with Node `v26.13.1`:
+Run these checks from the repository root using the Node.js version in `.nvmrc`.
 
 ```bash
 bash -lc 'source ~/.nvm/nvm.sh && nvm use >/dev/null && npm run check:syntax && npm test'
