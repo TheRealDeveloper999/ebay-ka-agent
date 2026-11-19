@@ -20,12 +20,15 @@
   <div class="item-detail-main">
     {% if item.image_urls_parsed.length %}
       <div class="gallery">
-        <img id="gallery-main" class="gallery__main" src="{{ item.image_urls_parsed[0] }}" alt="{{ item.title }}">
+        <p id="gallery-unavailable" class="empty-state" hidden>Image unavailable.</p>
+        <img id="gallery-main" class="gallery__main" src="{{ item.image_urls_parsed[0] }}" alt="{{ item.title }}"
+             onerror="this.hidden = true; document.getElementById('gallery-unavailable').hidden = false">
         {% if item.image_urls_parsed.length > 1 %}
           <div class="gallery__thumbs">
             {% for img in item.image_urls_parsed %}
               <img class="gallery__thumb {{ 'active' if loop.first }}" src="{{ img }}" alt="" loading="lazy"
-                   onclick="document.getElementById('gallery-main').src=this.src; document.querySelectorAll('.gallery__thumb').forEach(t=>t.classList.remove('active')); this.classList.add('active')">
+                   onerror="this.hidden = true"
+                   onclick="const main = document.getElementById('gallery-main'); main.hidden = false; main.src = this.src; document.getElementById('gallery-unavailable').hidden = true; document.querySelectorAll('.gallery__thumb').forEach(t=>t.classList.remove('active')); this.classList.add('active')">
             {% endfor %}
           </div>
         {% endif %}

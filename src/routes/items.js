@@ -4,6 +4,7 @@ const express = require('express');
 const { getDb } = require('../db');
 const { reEnqueue, getQueueEntry } = require('../lib/extract-queue');
 const { scoreItem, scoreLabel } = require('../lib/scorer');
+const { normalizeItemImages } = require('../lib/item-images');
 const router = express.Router();
 
 router.get('/items/:id', (req, res) => {
@@ -16,7 +17,7 @@ router.get('/items/:id', (req, res) => {
 
   if (!item) return res.status(404).render('404.njk', { page: '' });
 
-  item.image_urls_parsed = item.image_urls ? JSON.parse(item.image_urls) : [];
+  item.image_urls_parsed = normalizeItemImages(item);
   item.specs_parsed = item.specs ? JSON.parse(item.specs) : null;
 
   const snapshots = db.prepare('SELECT * FROM snapshots WHERE item_id = ? ORDER BY scraped_at DESC').all(item.id);

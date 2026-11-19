@@ -1,5 +1,7 @@
 'use strict';
 
+const { normalizeItemImages } = require('../lib/item-images');
+
 function parseAdCreationDate(text) {
   const match = text?.trim().match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
   if (!match) return null;
@@ -20,6 +22,19 @@ function readAdDateText(adId) {
 
 async function readAdCreationDate(page, externalId) {
   return parseAdCreationDate(await page.evaluate(readAdDateText, externalId));
+}
+
+async function readAdImages(page) {
+  const urls = await page.evaluate(() => {
+    const fullSize = document.querySelectorAll('#viewad-lightbox-thumbnail-list img[data-imgsrc]');
+    const images = fullSize.length ? fullSize : document.querySelectorAll(
+      '#viewad-thumbnails img, .galleryimage-element img, [data-testid="ad-image"]'
+    );
+    return Array.from(images, img => img.dataset.imgsrc || img.dataset.large || img.dataset.src || img.getAttribute('src'))
+      .filter(src => src && !src.includes('placeholder'))
+      .map(src => new URL(src, location.href).href);
+  });
+  return normalizeItemImages({ image_urls: urls });
 }
 
 // Returns true if the ad page still shows a live listing.
@@ -59,22 +74,20 @@ async function scrapeDetailPage(page, item) {
     const sellerEl = document.querySelector('#viewad-contact .text-bold, a[href*="/pro/"]');
     const sellerLinkEl = document.querySelector('a[href*="/pro/"], a[href*="/s-bestandsliste/"]');
 
-    const images = [];
-    const imgEls = document.querySelectorAll('#viewad-thumbnails img, .galleryimage-element img, [data-testid="ad-image"]');
-    for (const img of imgEls) {
-      const src = img.dataset.src || img.dataset.large || img.src;
-      if (src && !src.includes('placeholder')) images.push(src);
-    }
-
     return {
       description: descEl ? descEl.innerText.trim() : '',
       seller_name: sellerEl ? sellerEl.textContent.trim() : '',
       seller_url: sellerLinkEl ? sellerLinkEl.href : '',
-      image_urls: JSON.stringify(images),
     };
   });
 
-  return { ...item, ...detail, ad_created_date: item.ad_created_date ?? creationDate };
+  const images = await readAdImages(page);
+  return {
+    ...item,
+    ...detail,
+    ad_created_date: item.ad_created_date ?? creationDate,
+    image_urls: images.length ? JSON.stringify(images) : item.image_urls ?? null,
+  };
 }
 
 module.exports = { scrapeDetailPage, verifyItemAvailable, readAdCreationDate, parseAdCreationDate };
