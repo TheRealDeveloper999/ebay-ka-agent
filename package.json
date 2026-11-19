@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "type": "commonjs",
   "engines": {
-    "node": "21.6.1"
+    "node": "26.13.1"
   },
   "scripts": {
     "start": "node src/server.js",
@@ -16,7 +16,7 @@
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "better-sqlite3": "^9.6.0",
+    "better-sqlite3": "^13.2.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "nunjucks": "^3.2.4",

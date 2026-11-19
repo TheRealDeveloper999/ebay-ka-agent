@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-NODE_BIN="$HOME/.nvm/versions/node/v21.6.1/bin/node"
+PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+NODE_VERSION="$(<"$PROJECT_ROOT/.nvmrc")"
+NODE_BIN="${NVM_DIR:-$HOME/.nvm}/versions/node/v${NODE_VERSION}/bin/node"
 
 if [[ ! -x "$NODE_BIN" ]]; then
-  source "$HOME/.nvm/nvm.sh"
-  nvm install 21.6.1 >/dev/null
+  (
+    unset npm_config_prefix
+    set +u
+    source "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+    nvm install "$NODE_VERSION" >/dev/null
+  )
 fi
 
 exec "$NODE_BIN" "$@"

@@ -16,20 +16,19 @@ Use this checklist before committing, pushing, or saying the project is ready.
    - Tests should normally be committed with the behavior they verify.
 
 3. Use the project Node version.
-   - Required Node: `v21.6.1`.
-   - `better-sqlite3` is compiled for Node 21; ambient/system Node can fail with `ERR_DLOPEN_FAILED`.
+   - Required Node: `v26.13.1`.
    - Prefer:
 
      ```bash
-     bash -lc 'source ~/.nvm/nvm.sh && nvm use 21.6.1 >/dev/null && <command>'
+     bash -lc 'source ~/.nvm/nvm.sh && nvm use >/dev/null && <command>'
      ```
 
 ## Required checks
 
-Run these from the repository root with Node `v21.6.1`:
+Run these from the repository root with Node `v26.13.1`:
 
 ```bash
-bash -lc 'source ~/.nvm/nvm.sh && nvm use 21.6.1 >/dev/null && npm run check:syntax && npm test'
+bash -lc 'source ~/.nvm/nvm.sh && nvm use >/dev/null && npm run check:syntax && npm test'
 ```
 
 Expected result:

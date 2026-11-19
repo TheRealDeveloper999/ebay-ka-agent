@@ -4,25 +4,24 @@ Local eBay Kleinanzeigen monitor for saved search/source URLs. It scrapes listin
 
 ## Stack
 
-- Node.js `21.6.1`
+- Node.js `26.13.1`
 - Express 4
 - Nunjucks
 - SQLite via `better-sqlite3`
 - Playwright
 - HTMX 2
 
-`better-sqlite3` is compiled against Node 21 in this checkout. Use the project wrapper for direct node commands:
+Use the project wrapper to run direct Node commands with the version pinned in `.nvmrc`.
 
 ```sh
 ./bin/node <script>
 ```
 
-Do not run project scripts with a different system Node if native modules were installed under Node 21.
-
 ## Setup
 
 ```sh
-npm install
+nvm install
+npm ci
 cp .env.example .env
 npx playwright install chromium
 ```
@@ -146,7 +145,7 @@ Tests:
 ./bin/node --test test/*.test.js
 ```
 
-Equivalent npm scripts exist, but make sure the shell is using Node `21.6.1` before running them:
+Equivalent npm scripts exist, but make sure the shell is using Node `26.13.1` before running them:
 
 ```sh
 npm run check:syntax
@@ -183,6 +182,6 @@ Follow `precommit.md` for the full checklist. Short version:
 
 1. Preserve any existing git index/changelists.
 2. Make atomic commits.
-3. Use Node `21.6.1` / `./bin/node`.
+3. Use Node `26.13.1` / `./bin/node`.
 4. Run syntax checks and tests.
 5. Browser-verify UI changes.
