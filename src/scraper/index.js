@@ -3,7 +3,7 @@
 const { getDb } = require('../db');
 const { getBrowser } = require('./browser');
 const { scrapeListingPage } = require('./listingPage');
-const { scrapeDetailPage, verifyItemAvailable } = require('./detailPage');
+const { scrapeDetailPage, verifyItemAvailable, readAdCreationDate } = require('./detailPage');
 const { diffSnapshots } = require('./differ');
 const { enqueue } = require('../lib/extract-queue');
 
@@ -59,7 +59,8 @@ async function scrapeSource(sourceId) {
 
     const updateItem = db.prepare(`
       UPDATE items SET description = @description, image_urls = @image_urls,
-        seller_name = @seller_name, seller_url = @seller_url, last_seen_at = datetime('now')
+        seller_name = @seller_name, seller_url = @seller_url, last_seen_at = datetime('now'),
+        ad_created_date = COALESCE(ad_created_date, @ad_created_date)
       WHERE id = @id
     `);
 
@@ -75,6 +76,13 @@ async function scrapeSource(sourceId) {
 
     const getLastSnapshot = db.prepare('SELECT * FROM snapshots WHERE item_id = ? ORDER BY scraped_at DESC LIMIT 1');
     const getItem = db.prepare('SELECT * FROM items WHERE provider = ? AND external_id = ?');
+    const setCreationDate = db.prepare('UPDATE items SET ad_created_date = ? WHERE id = ? AND ad_created_date IS NULL');
+
+    async function saveCreationDate(item) {
+      if (item.ad_created_date) return;
+      const creationDate = await readAdCreationDate(page, item.external_id).catch(() => null);
+      if (creationDate) setCreationDate.run(creationDate, item.id);
+    }
 
     // Build detail queue outside any transaction (network I/O must be separate)
     const detailQueue = [];
@@ -95,6 +103,7 @@ async function scrapeSource(sourceId) {
           fullItem = await scrapeDetailPage(page, fullItem);
           updateItem.run({
             id: item.id,
+            ad_created_date: fullItem.ad_created_date,
             description: fullItem.description || '',
             image_urls: fullItem.image_urls || null,
             seller_name: fullItem.seller_name || null,
@@ -103,6 +112,8 @@ async function scrapeSource(sourceId) {
         } catch (e) {
           console.warn(`Detail scrape failed for item ${item.id}: ${e.message}`);
         }
+      } else if (!item.ad_created_date && await verifyItemAvailable(page, item.url)) {
+        await saveCreationDate(item);
       }
 
       db.transaction(() => {
@@ -152,13 +163,14 @@ async function scrapeSource(sourceId) {
       const graceMs = source.interval * 2 * 60 * 1000;
       const removeCutoff = new Date(Date.now() - graceMs).toISOString();
       const allItems = db.prepare(
-        'SELECT id, external_id, url, last_seen_at FROM items WHERE source_id = ? AND removed_at IS NULL'
+        'SELECT id, external_id, url, last_seen_at, ad_created_date FROM items WHERE source_id = ? AND removed_at IS NULL'
       ).all(sourceId);
       const markRemoved = db.prepare("UPDATE items SET removed_at = datetime('now') WHERE id = ?");
       for (const it of allItems) {
         if (!scrapedIds.has(it.external_id) && it.last_seen_at < removeCutoff) {
           const stillLive = await verifyItemAvailable(page, it.url);
           if (stillLive) {
+            await saveCreationDate(it);
             console.log(`[scraper] item ${it.id} not in listing page but still live — skipping removal`);
             continue;
           }

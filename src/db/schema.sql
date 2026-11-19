@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS items (
     thumbnail_url   TEXT,
     description     TEXT,
     image_urls      TEXT,
+    ad_created_date TEXT,
     first_seen_at   TEXT NOT NULL DEFAULT (datetime('now')),
     last_seen_at    TEXT NOT NULL DEFAULT (datetime('now')),
     removed_at      TEXT,

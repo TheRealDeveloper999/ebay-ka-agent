@@ -131,6 +131,13 @@ const migrations = [
       `);
     },
   },
+  {
+    version: 7,
+    description: 'store the original ad date',
+    run(db) {
+      db.exec('ALTER TABLE items ADD COLUMN ad_created_date TEXT');
+    },
+  },
 ];
 
 function migrate() {

@@ -1,5 +1,27 @@
 'use strict';
 
+function parseAdCreationDate(text) {
+  const match = text?.trim().match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+  if (!match) return null;
+  const [, day, month, year] = match;
+  const isoDate = `${year}-${month}-${day}`;
+  const date = new Date(isoDate);
+  return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== isoDate ? null : isoDate;
+}
+
+function readAdDateText(adId) {
+  const currentAdId = location.pathname.match(/^\/s-anzeige\/(?:[^/]+\/)?(\d+)-\d+-\d+\/?$/)?.[1];
+  if (currentAdId !== adId) return null;
+  const date = document.querySelector(
+    '#viewad-extra-info .icon-calendar-gray-simple + span, #viewad-extra-info time'
+  );
+  return date?.textContent;
+}
+
+async function readAdCreationDate(page, externalId) {
+  return parseAdCreationDate(await page.evaluate(readAdDateText, externalId));
+}
+
 // Returns true if the ad page still shows a live listing.
 // Kleinanzeigen redirects removed ads to search/home, or shows a "no longer available" banner.
 async function verifyItemAvailable(page, url) {
@@ -31,6 +53,7 @@ async function scrapeDetailPage(page, item) {
 
   await page.waitForSelector('#viewad-description, .addetailspage', { timeout: 15000 }).catch(() => null);
 
+  const creationDate = await readAdCreationDate(page, item.external_id);
   const detail = await page.evaluate(() => {
     const descEl = document.querySelector('#viewad-description-text, .ad-description');
     const sellerEl = document.querySelector('#viewad-contact .text-bold, a[href*="/pro/"]');
@@ -51,7 +74,7 @@ async function scrapeDetailPage(page, item) {
     };
   });
 
-  return { ...item, ...detail };
+  return { ...item, ...detail, ad_created_date: item.ad_created_date ?? creationDate };
 }
 
-module.exports = { scrapeDetailPage, verifyItemAvailable };
+module.exports = { scrapeDetailPage, verifyItemAvailable, readAdCreationDate, parseAdCreationDate };

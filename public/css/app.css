@@ -280,6 +280,21 @@ tbody.source-inactive .toggle-btn { opacity: 1; }
   line-height: 1.4;
 }
 .score-badge--overlay { position: absolute; bottom: 6px; right: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.3); z-index: 11; }
+.item-card__age {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 11;
+  padding: .1rem .4rem;
+  border-radius: 999px;
+  color: #422006;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  font-size: .72rem;
+  font-weight: 700;
+}
+.item-card__age--yellow { background: #fde047; }
+.item-card__age--orange { background: #fb923c; }
+.item-card__age--red { background: #b91c1c; color: #fff; }
 .item-card__body { padding: .6rem; }
 .item-card__title { font-size: .82rem; font-weight: 500; margin-bottom: .3rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .item-card__title--specs { display: block; font-size: .75rem; font-family: ui-monospace, 'SF Mono', Consolas, monospace; color: var(--text-muted); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
@@ -313,6 +328,8 @@ tbody.source-inactive .toggle-btn { opacity: 1; }
   right: .35rem;
   z-index: 20;
 }
+.item-card:has(.item-card__age) .item-card__menu { right: auto; left: .35rem; }
+.item-card:has(.item-card__age) .item-card__dropdown { right: auto; left: 0; }
 .item-card__menu-btn {
   background: rgba(0,0,0,.45);
   color: #fff;

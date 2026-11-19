@@ -4,7 +4,7 @@ const express = require('express');
 const nunjucks = require('nunjucks');
 const log = require('./lib/logger');
 const path = require('path');
-const { formatPrice, formatDate, relativeTime, changeTypeLabel, changeTypeBadgeClass, queueStatusLabel, queueStatusBadgeClass } = require('./lib/formatters');
+const { formatPrice, formatDate, formatCalendarDate, relativeTime, changeTypeLabel, changeTypeBadgeClass, queueStatusLabel, queueStatusBadgeClass } = require('./lib/formatters');
 const { scoreLabel, specLine } = require('./lib/scorer');
 
 const DEV = process.env.NODE_ENV !== 'production';
@@ -20,6 +20,7 @@ const env = nunjucks.configure(path.join(__dirname, '../views'), {
 
 env.addGlobal('formatPrice', formatPrice);
 env.addGlobal('formatDate', formatDate);
+env.addGlobal('formatCalendarDate', formatCalendarDate);
 env.addGlobal('relativeTime', relativeTime);
 env.addGlobal('changeTypeLabel', changeTypeLabel);
 env.addGlobal('changeTypeBadgeClass', changeTypeBadgeClass);

@@ -14,6 +14,12 @@ function formatDate(isoString) {
   });
 }
 
+function formatCalendarDate(isoDate) {
+  return new Date(isoDate).toLocaleDateString('de-DE', {
+    day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC',
+  });
+}
+
 function relativeTime(isoString) {
   if (!isoString) return '–';
   const diff = Date.now() - new Date(isoString).getTime();
@@ -60,4 +66,4 @@ function queueStatusBadgeClass(status) {
   return { pending: 'badge-warning', processing: 'badge-info', done: 'badge-success', failed: 'badge-removed' }[status] || '';
 }
 
-module.exports = { formatPrice, formatDate, relativeTime, changeTypeLabel, changeTypeBadgeClass, queueStatusLabel, queueStatusBadgeClass };
+module.exports = { formatPrice, formatDate, formatCalendarDate, relativeTime, changeTypeLabel, changeTypeBadgeClass, queueStatusLabel, queueStatusBadgeClass };

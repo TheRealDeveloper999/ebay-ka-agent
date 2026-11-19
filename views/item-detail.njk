@@ -69,6 +69,14 @@
         <span class="meta-value"><a href="/sources">{{ item.source_name }}</a></span>
       </div>
       <div class="item-meta-row">
+        <span class="meta-label">Creation date</span>
+        {% if item.ad_created_date %}
+          <time class="meta-value" datetime="{{ item.ad_created_date }}">{{ formatCalendarDate(item.ad_created_date) }}</time>
+        {% else %}
+          <span class="meta-value">–</span>
+        {% endif %}
+      </div>
+      <div class="item-meta-row">
         <span class="meta-label">First seen</span>
         <span class="meta-value">{{ formatDate(item.first_seen_at) }}</span>
       </div>

@@ -3,6 +3,7 @@
 const express = require('express');
 const { getDb } = require('../db');
 const { attachItemImages } = require('../lib/item-images');
+const { getListingAge } = require('../lib/listing-age');
 const router = express.Router();
 
 function getStats(db) {
@@ -35,7 +36,7 @@ function getRecentItems(db, sort = 'score', page = 1) {
   const total = db.prepare('SELECT COUNT(*) as n FROM items WHERE removed_at IS NULL AND is_hidden = 0').get().n;
   const items = db.prepare(`
     SELECT i.id, i.source_id, i.url, i.title, i.price, i.price_text,
-           i.location, i.thumbnail_url, i.image_urls, i.first_seen_at, i.score, i.specs,
+           i.location, i.thumbnail_url, i.image_urls, i.first_seen_at, i.ad_created_date, i.score, i.specs,
            s.name as source_name, eq.status as queue_status
     FROM items i
     JOIN sources s ON i.source_id = s.id
@@ -44,7 +45,12 @@ function getRecentItems(db, sort = 'score', page = 1) {
     ORDER BY ${orderBy}
     LIMIT ? OFFSET ?
   `).all(PAGE_SIZE, offset);
-  return { items: attachItemImages(items), total, page, totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
+  const now = new Date();
+  const cards = attachItemImages(items).map(item => ({
+    ...item,
+    age: getListingAge(item.ad_created_date, now),
+  }));
+  return { items: cards, total, page, totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
 }
 
 router.get('/', (req, res) => {

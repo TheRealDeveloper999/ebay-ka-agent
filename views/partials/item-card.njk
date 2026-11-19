@@ -22,6 +22,10 @@
         <div class="item-card__thumb item-card__thumb--placeholder"></div>
       </a>
     {% endif %}
+    {% if item.age %}
+      <span class="item-card__age item-card__age--{{ item.age.color }}"
+            title="Listed {{ item.age.days }} days ago">{{ item.age.days }}d</span>
+    {% endif %}
     <span class="item-card__price">{{ formatPrice(item.price, item.price_text) }}</span>
     {% if item.score !== null and item.score !== undefined %}
       <span class="score-badge score-badge--{{ scoreLabel(item.score) }} score-badge--overlay" title="GPU-Score">{{ item.score }}</span>
