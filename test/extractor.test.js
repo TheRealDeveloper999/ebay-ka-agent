@@ -93,3 +93,60 @@ describe('model specs output parsing', () => {
     );
   });
 });
+
+describe('OpenRouter account rotation', () => {
+  test('treats HTTP 402 credit errors as key exhaustion and tries the next key', async () => {
+    const modulePath = require.resolve('../src/lib/extractor');
+    const oldFetch = global.fetch;
+    const oldKeys = {
+      OPENROUTER_API_KEYS: process.env.OPENROUTER_API_KEYS,
+      OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+      OPENROUTER_API_KEY_1: process.env.OPENROUTER_API_KEY_1,
+      OPENROUTER_API_KEY_2: process.env.OPENROUTER_API_KEY_2,
+    };
+
+    delete require.cache[modulePath];
+    process.env.OPENROUTER_API_KEYS = 'first-key,second-key';
+    delete process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENROUTER_API_KEY_1;
+    delete process.env.OPENROUTER_API_KEY_2;
+
+    const usedKeys = [];
+    global.fetch = async (_url, options) => {
+      usedKeys.push(options.headers.Authorization.replace('Bearer ', ''));
+      if (usedKeys.length === 1) {
+        return {
+          ok: false,
+          status: 402,
+          text: async () => JSON.stringify({
+            error: { message: 'This request requires more credits, or fewer max_tokens.' },
+          }),
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ choices: [{ message: { content: JSON.stringify(validSpecs) } }] }),
+      };
+    };
+
+    try {
+      const { extractSpecs, getKeyStatuses } = require('../src/lib/extractor');
+
+      const specs = await extractSpecs('Gaming PC listing');
+
+      assert.deepEqual(specs, validSpecs);
+      assert.deepEqual(usedKeys, ['first-key', 'second-key']);
+      assert.equal(getKeyStatuses()[0].available, false);
+      assert.equal(getKeyStatuses()[1].available, true);
+    } finally {
+      global.fetch = oldFetch;
+      for (const [name, value] of Object.entries(oldKeys)) {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      }
+      delete require.cache[modulePath];
+      require('../src/lib/extractor');
+    }
+  });
+});

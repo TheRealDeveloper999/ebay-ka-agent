@@ -242,7 +242,7 @@ async function callApi(apiKey, model, description) {
   }
   clearTimeout(timer);
 
-  // Rate limit — may be plain-text or JSON
+  // Key/account exhaustion — may be plain-text or JSON
   if (res.status === 429) {
     const body = await res.text().catch(() => '');
     throw taggedError(RATE_LIMIT, body || 'HTTP 429 rate limit');
@@ -250,6 +250,9 @@ async function callApi(apiKey, model, description) {
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
+    if (res.status === 402 && isRateLimitMessage(body)) {
+      throw taggedError(RATE_LIMIT, body || 'HTTP 402 account limit');
+    }
     throw taggedError(API_ERROR, `HTTP ${res.status}: ${body.slice(0, 200)}`);
   }
 
