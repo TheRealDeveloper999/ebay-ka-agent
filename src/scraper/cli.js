@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const { migrate } = require('../db/migrate');
 const { scrapeSource } = require('./index');
 const { closeBrowser } = require('./browser');

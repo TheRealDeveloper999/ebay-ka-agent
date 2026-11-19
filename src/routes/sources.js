@@ -19,22 +19,23 @@ router.get('/sources/new', (req, res) => {
 });
 
 router.post('/sources', (req, res) => {
-  const errors = validateSource(req.body);
+  const body = req.body ?? {};
+  const errors = validateSource(body);
   if (errors.length) {
-    return res.render('source-form.njk', { source: req.body, errors, page: 'sources', action: '/sources', method: 'POST', title: 'New source' });
+    return res.render('source-form.njk', { source: body, errors, page: 'sources', action: '/sources', method: 'POST', title: 'New source' });
   }
   const db = getDb();
   const result = db.prepare(`
     INSERT INTO sources (name, url, interval, active, keyword, min_price, max_price)
     VALUES (@name, @url, @interval, @active, @keyword, @min_price, @max_price)
   `).run({
-    name: req.body.name.trim(),
-    url: req.body.url.trim(),
-    interval: parseInt(req.body.interval, 10),
-    active: req.body.active === 'on' ? 1 : 0,
-    keyword: req.body.keyword?.trim() || null,
-    min_price: parseOptionalFloat(req.body.min_price),
-    max_price: parseOptionalFloat(req.body.max_price),
+    name: body.name.trim(),
+    url: body.url.trim(),
+    interval: parseInt(body.interval, 10),
+    active: body.active === 'on' ? 1 : 0,
+    keyword: body.keyword?.trim() || null,
+    min_price: parseOptionalFloat(body.min_price),
+    max_price: parseOptionalFloat(body.max_price),
   });
   const source = db.prepare('SELECT * FROM sources WHERE id = ?').get(result.lastInsertRowid);
   if (source.active) addJob(source);
@@ -49,10 +50,11 @@ router.get('/sources/:id/edit', (req, res) => {
 });
 
 router.post('/sources/:id', (req, res) => {
-  const errors = validateSource(req.body);
+  const body = req.body ?? {};
+  const errors = validateSource(body);
   if (errors.length) {
     const db = getDb();
-    const source = { ...db.prepare('SELECT * FROM sources WHERE id = ?').get(req.params.id), ...req.body };
+    const source = { ...db.prepare('SELECT * FROM sources WHERE id = ?').get(req.params.id), ...body };
     return res.render('source-form.njk', { source, errors, page: 'sources', action: `/sources/${req.params.id}`, method: 'POST', title: 'Edit source' });
   }
   const db = getDb();
@@ -62,13 +64,13 @@ router.post('/sources/:id', (req, res) => {
     WHERE id=@id
   `).run({
     id: req.params.id,
-    name: req.body.name.trim(),
-    url: req.body.url.trim(),
-    interval: parseInt(req.body.interval, 10),
-    active: req.body.active === 'on' ? 1 : 0,
-    keyword: req.body.keyword?.trim() || null,
-    min_price: parseOptionalFloat(req.body.min_price),
-    max_price: parseOptionalFloat(req.body.max_price),
+    name: body.name.trim(),
+    url: body.url.trim(),
+    interval: parseInt(body.interval, 10),
+    active: body.active === 'on' ? 1 : 0,
+    keyword: body.keyword?.trim() || null,
+    min_price: parseOptionalFloat(body.min_price),
+    max_price: parseOptionalFloat(body.max_price),
   });
   const source = db.prepare('SELECT * FROM sources WHERE id = ?').get(req.params.id);
   restartJob(source);

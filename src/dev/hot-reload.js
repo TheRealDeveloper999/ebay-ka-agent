@@ -1,6 +1,7 @@
 'use strict';
 
-const chokidar = require('chokidar');
+// Nunjucks declares an optional peer on Chokidar 3 for its unused watch mode.
+const chokidar = require('chokidar-hot-reload');
 const path = require('path');
 
 // Unique ID per server process — clients detect a change and reload
