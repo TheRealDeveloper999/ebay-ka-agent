@@ -3,8 +3,8 @@
 const express = require('express');
 const { getDb } = require('../db');
 const { reEnqueue, getQueueEntry } = require('../lib/extract-queue');
-const { scoreItem, scoreLabel } = require('../lib/scorer');
 const { normalizeItemImages } = require('../lib/item-images');
+const { getListingAgeDays } = require('../lib/listing-age');
 const router = express.Router();
 
 router.get('/items/:id', (req, res) => {
@@ -19,6 +19,7 @@ router.get('/items/:id', (req, res) => {
 
   item.image_urls_parsed = normalizeItemImages(item);
   item.specs_parsed = item.specs ? JSON.parse(item.specs) : null;
+  item.age_days = getListingAgeDays(item.ad_created_date);
 
   const snapshots = db.prepare('SELECT * FROM snapshots WHERE item_id = ? ORDER BY scraped_at DESC').all(item.id);
   const changes = db.prepare('SELECT * FROM changes WHERE item_id = ? ORDER BY detected_at DESC').all(item.id);

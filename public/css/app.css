@@ -437,6 +437,7 @@ tbody.source-inactive .toggle-btn { opacity: 1; }
 @media (max-width: 860px) { .item-detail-grid { grid-template-columns: 1fr; } }
 .item-detail-main > * + * { margin-top: 1rem; }
 .item-detail-side h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+.item-detail-summary { margin-bottom: 1rem; }
 
 .gallery__main { width: 100%; max-height: 420px; object-fit: contain; background: #000; border-radius: var(--radius); }
 .gallery__thumbs { display: flex; gap: .5rem; margin-top: .5rem; flex-wrap: wrap; }

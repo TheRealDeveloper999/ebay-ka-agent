@@ -40,15 +40,6 @@
         <span class="meta-label">Price</span>
         <span class="meta-value price-value">{{ formatPrice(item.price, item.price_text) }}</span>
       </div>
-      {% if item.score !== null and item.score !== undefined %}
-      <div class="item-meta-row">
-        <span class="meta-label">Score</span>
-        <span class="meta-value">
-          <span class="score-badge score-badge--{{ scoreLabel(item.score) }} score-badge--lg">{{ item.score }}</span>
-          <span class="score-tier">{{ scoreLabel(item.score) }}</span>
-        </span>
-      </div>
-      {% endif %}
       {% if item.location %}
         <div class="item-meta-row">
           <span class="meta-label">Ort</span>
@@ -106,6 +97,29 @@
   </div>
 
   <aside class="item-detail-side">
+    <div class="item-meta-box item-detail-summary">
+      <div class="item-meta-row">
+        <span class="meta-label">Score</span>
+        {% if item.score !== null and item.score !== undefined %}
+          <span class="meta-value">
+            <span class="score-badge score-badge--{{ scoreLabel(item.score) }} score-badge--lg">{{ item.score }}</span>
+            <span class="score-tier">{{ scoreLabel(item.score) }}</span>
+          </span>
+        {% else %}
+          <span class="meta-value">–</span>
+        {% endif %}
+      </div>
+      <div class="item-meta-row">
+        <span class="meta-label">Listing age</span>
+        <span class="meta-value">
+          {% if item.age_days === 0 %}Today
+          {% elif item.age_days === 1 %}1 day
+          {% elif item.age_days %}{{ item.age_days }} days
+          {% else %}–
+          {% endif %}
+        </span>
+      </div>
+    </div>
     <h2>Change history</h2>
     {% if changes.length == 0 %}
       <p class="empty-state">No changes recorded.</p>

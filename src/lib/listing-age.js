@@ -3,14 +3,19 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 const berlinDate = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' });
 
-function getListingAge(date, now = new Date()) {
+function getListingAgeDays(date, now = new Date()) {
   if (!date) return null;
 
   const days = (Date.parse(berlinDate.format(now)) - Date.parse(date)) / DAY_MS;
+  return Number.isInteger(days) && days >= 0 ? days : null;
+}
+
+function getListingAge(date, now = new Date()) {
+  const days = getListingAgeDays(date, now);
   if (days > 20) return { days, color: 'red' };
   if (days > 7) return { days, color: 'orange' };
   if (days > 3) return { days, color: 'yellow' };
   return null;
 }
 
-module.exports = { getListingAge };
+module.exports = { getListingAge, getListingAgeDays };
