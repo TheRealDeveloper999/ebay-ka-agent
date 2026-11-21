@@ -33,7 +33,8 @@
       <div class="gallery">
         <p id="gallery-unavailable" class="empty-state" hidden>Image unavailable.</p>
         <img id="gallery-main" class="gallery__main" src="{{ item.image_urls_parsed[0] }}" alt="{{ item.title }}"
-             onerror="this.hidden = true; document.getElementById('gallery-unavailable').hidden = false">
+             {% if item.gallery_fallback_url %}data-fallback-src="{{ item.gallery_fallback_url }}"{% endif %}
+             onerror="if (this.dataset.fallbackSrc) { const fallback = this.dataset.fallbackSrc; delete this.dataset.fallbackSrc; this.src = fallback; } else { this.hidden = true; document.getElementById('gallery-unavailable').hidden = false; }">
         {% if item.image_urls_parsed.length > 1 %}
           <div class="gallery__thumbs">
             {% for img in item.image_urls_parsed %}

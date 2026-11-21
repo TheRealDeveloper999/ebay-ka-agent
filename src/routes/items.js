@@ -17,7 +17,16 @@ router.get('/items/:id', (req, res) => {
 
   if (!item) return res.status(404).render('404.njk', { page: '' });
 
+  const gallery = normalizeItemImages({ image_urls: item.image_urls });
   item.image_urls_parsed = normalizeItemImages(item);
+  if (!gallery.length && /^https:\/\/img\.kleinanzeigen\.de\/api\/v1\/prod-ads\/images\//.test(item.thumbnail_url)) {
+    const fullSize = new URL(item.thumbnail_url);
+    if (fullSize.searchParams.get('rule') === '$_2.AUTO') {
+      fullSize.searchParams.set('rule', '$_57.AUTO');
+      item.image_urls_parsed[0] = fullSize.href;
+      item.gallery_fallback_url = item.thumbnail_url;
+    }
+  }
   item.specs_parsed = item.specs ? JSON.parse(item.specs) : null;
   item.age_days = getListingAgeDays(item.ad_created_date);
 
