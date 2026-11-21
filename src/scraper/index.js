@@ -6,6 +6,7 @@ const { scrapeListingPage } = require('./listingPage');
 const { scrapeDetailPage, verifyItemAvailable, readAdCreationDate } = require('./detailPage');
 const { diffSnapshots } = require('./differ');
 const { enqueue } = require('../lib/extract-queue');
+const { normalizeItemImages } = require('../lib/item-images');
 
 const SNAPSHOT_FIELDS = ['title', 'price', 'price_text', 'location', 'description', 'image_urls', 'seller_name'];
 
@@ -90,7 +91,8 @@ async function scrapeSource(sourceId) {
       insertItem.run({ source_id: sourceId, provider, ...card });
       const item = getItem.get(provider, card.external_id);
       const prevSnapshot = getLastSnapshot.get(item.id);
-      const needsDetail = !prevSnapshot || !item.description;
+      const hasGallery = normalizeItemImages({ image_urls: item.image_urls }).length > 0;
+      const needsDetail = !prevSnapshot || !item.description || !hasGallery;
       detailQueue.push({ item, prevSnapshot, card, needsDetail });
     }
 
@@ -104,10 +106,10 @@ async function scrapeSource(sourceId) {
           updateItem.run({
             id: item.id,
             ad_created_date: fullItem.ad_created_date,
-            description: fullItem.description || '',
+            description: fullItem.description || item.description || '',
             image_urls: fullItem.image_urls || null,
-            seller_name: fullItem.seller_name || null,
-            seller_url: fullItem.seller_url || null,
+            seller_name: fullItem.seller_name || item.seller_name || null,
+            seller_url: fullItem.seller_url || item.seller_url || null,
           });
         } catch (e) {
           console.warn(`Detail scrape failed for item ${item.id}: ${e.message}`);
