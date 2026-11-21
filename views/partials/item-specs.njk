@@ -29,8 +29,8 @@
       {% if specs.os %}
         <tr><th>OS</th><td>{{ specs.os }}</td></tr>
       {% endif %}
-      {% if specs.condition %}
-        <tr><th>Condition</th><td>{{ specs.condition }}</td></tr>
+      {% if specs.condition === 'new' %}
+        <tr><th>Condition</th><td>New / unused</td></tr>
       {% endif %}
     </table>
   {% endif %}
