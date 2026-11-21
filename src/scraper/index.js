@@ -59,7 +59,7 @@ async function scrapeSource(sourceId) {
     `);
 
     const updateItem = db.prepare(`
-      UPDATE items SET description = @description, image_urls = @image_urls,
+      UPDATE items SET description = @description, image_urls = COALESCE(@image_urls, image_urls),
         seller_name = @seller_name, seller_url = @seller_url, last_seen_at = datetime('now'),
         ad_created_date = COALESCE(ad_created_date, @ad_created_date)
       WHERE id = @id
@@ -107,7 +107,7 @@ async function scrapeSource(sourceId) {
             id: item.id,
             ad_created_date: fullItem.ad_created_date,
             description: fullItem.description || item.description || '',
-            image_urls: fullItem.image_urls || null,
+            image_urls: normalizeItemImages({ image_urls: fullItem.image_urls }).length ? fullItem.image_urls : null,
             seller_name: fullItem.seller_name || item.seller_name || null,
             seller_url: fullItem.seller_url || item.seller_url || null,
           });

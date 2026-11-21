@@ -64,7 +64,8 @@ async function verifyItemAvailable(page, url) {
 }
 
 async function scrapeDetailPage(page, item) {
-  await page.goto(item.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  const response = await page.goto(item.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  if (response && !response.ok()) throw new Error(`Detail page returned HTTP ${response.status()}`);
 
   await page.waitForSelector('#viewad-description, .addetailspage', { timeout: 15000 }).catch(() => null);
 
