@@ -3,7 +3,7 @@
     <p class="empty-state">No changes recorded yet.</p>
   {% else %}
     {% for ch in changes %}
-      <div class="change-entry">
+      <div class="change-entry{{ ' change-entry--today' if ch.change_type != 'new' and isToday and isToday(ch.detected_at) }}">
         {% if ch.thumbnail_url %}
           <img class="change-thumb" src="{{ ch.thumbnail_url }}" alt="" loading="lazy">
         {% endif %}

@@ -18,4 +18,14 @@ function getListingAge(date, now = new Date()) {
   return null;
 }
 
-module.exports = { getListingAge, getListingAgeDays };
+function isToday(timestamp, now = new Date()) {
+  if (!timestamp) return false;
+  // SQLite stores unzoned change timestamps in UTC.
+  const utcTimestamp = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(timestamp)
+    ? timestamp.replace(' ', 'T') + 'Z'
+    : timestamp;
+  const date = new Date(utcTimestamp);
+  return !Number.isNaN(date.getTime()) && berlinDate.format(date) === berlinDate.format(now);
+}
+
+module.exports = { getListingAge, getListingAgeDays, isToday };

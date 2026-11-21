@@ -182,6 +182,7 @@ tbody.source-inactive .toggle-btn { opacity: 1; }
   border-radius: var(--radius);
   background: var(--bg);
 }
+.change-entry--today { box-shadow: inset 3px 0 0 var(--accent); }
 .change-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
 .change-body { flex: 1; min-width: 0; }
 .change-header { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .3rem; }

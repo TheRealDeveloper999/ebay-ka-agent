@@ -3,13 +3,20 @@
 const express = require('express');
 const { getDb } = require('../db');
 const { attachItemImages } = require('../lib/item-images');
-const { getListingAge } = require('../lib/listing-age');
+const { getListingAge, isToday } = require('../lib/listing-age');
 const router = express.Router();
 
 function getStats(db) {
   const total = db.prepare('SELECT COUNT(*) as n FROM items WHERE removed_at IS NULL').get().n;
   const newToday = db.prepare("SELECT COUNT(*) as n FROM items WHERE date(first_seen_at) = date('now') AND removed_at IS NULL").get().n;
-  const changedToday = db.prepare("SELECT COUNT(DISTINCT item_id) as n FROM changes WHERE date(detected_at) = date('now') AND change_type != 'new'").get().n;
+  const recentChanges = db.prepare(`
+    SELECT c.item_id, c.detected_at
+    FROM changes c JOIN items i ON i.id = c.item_id
+    WHERE c.detected_at >= datetime('now', 'start of day', '-1 day')
+      AND c.change_type != 'new' AND i.is_hidden = 0
+  `).all();
+  const now = new Date();
+  const changedToday = new Set(recentChanges.filter(ch => isToday(ch.detected_at, now)).map(ch => ch.item_id)).size;
   const activeSources = db.prepare('SELECT COUNT(*) as n FROM sources WHERE active = 1').get().n;
   return { total, newToday, changedToday, activeSources };
 }
@@ -20,7 +27,7 @@ function getRecentChanges(db, limit = 20) {
     FROM changes c
     JOIN items i ON c.item_id = i.id
     JOIN sources s ON c.source_id = s.id
-    WHERE i.is_hidden = 0
+    WHERE i.is_hidden = 0 AND c.change_type != 'new'
     ORDER BY c.detected_at DESC
     LIMIT ?
   `).all(limit);
