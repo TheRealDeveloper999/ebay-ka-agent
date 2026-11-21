@@ -433,6 +433,11 @@ tbody.source-inactive .toggle-btn { opacity: 1; }
 .required { color: var(--red); }
 
 /* ── Item detail ── */
+.item-detail-header { gap: .75rem 1rem; flex-wrap: wrap; }
+.item-detail-header h1 { min-width: 0; overflow-wrap: anywhere; }
+.item-detail-header .page-header-actions { width: auto; flex-shrink: 0; margin-left: auto; }
+.item-detail-header .btn { min-height: 2.5rem; }
+.item-detail-header .btn-icon { width: 2.5rem; flex: 0 0 auto; justify-content: center; }
 .item-detail-grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; }
 @media (max-width: 860px) { .item-detail-grid { grid-template-columns: 1fr; } }
 .item-detail-main > * + * { margin-top: 1rem; }

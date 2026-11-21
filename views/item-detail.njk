@@ -3,12 +3,23 @@
 {% block title %}{{ item.title }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header item-detail-header">
   <h1 class="{{ 'removed' if item.removed_at }}">{{ item.title }}</h1>
   <div class="page-header-actions">
-    <a class="btn btn-primary" href="{{ item.url }}" target="_blank">Open on kleinanzeigen.de ↗</a>
+    <a class="btn btn-primary btn-icon" href="{{ item.url }}" target="_blank"
+       rel="noopener" aria-label="Open on Kleinanzeigen (new tab)" title="Open on Kleinanzeigen">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M13 5h6v6m0-6-9 9m8-1v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>
+      </svg>
+    </a>
     {% include "partials/item-hide-toggle.njk" %}
-    <a class="btn" href="/">← Dashboard</a>
+    <a class="btn btn-icon" href="/" aria-label="Back to dashboard" title="Back to dashboard">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m12 19-7-7 7-7m-7 7h14"/>
+      </svg>
+    </a>
   </div>
 </div>
 
