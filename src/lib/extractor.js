@@ -195,7 +195,7 @@ function markKeyExhausted(key) {
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   tomorrow.setUTCHours(0, 5, 0, 0); // 00:05 UTC — small buffer after midnight
   state.exhaustedUntil = tomorrow.getTime();
-  console.warn(`[extractor] key …${key.slice(-8)} rate-limited — paused until ${tomorrow.toISOString()}`);
+  console.warn(`[extractor] an API key was rate-limited — paused until ${tomorrow.toISOString()}`);
 }
 
 function getKeyStatuses() {

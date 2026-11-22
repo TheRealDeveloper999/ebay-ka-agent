@@ -51,6 +51,8 @@ OPENROUTER_API_KEY_3=key3
 
 Keys rotate automatically when a key hits a daily limit. Never commit real keys.
 
+Keep your local `.env`, SQLite database, and scraped data out of Git. When AI extraction is enabled, the app sends listing descriptions to OpenRouter.
+
 ## Run
 
 Start the web app, scheduler, and extraction queue:
@@ -64,6 +66,8 @@ Open:
 ```text
 http://localhost:3000
 ```
+
+The dashboard has no built-in authentication. Run it on a trusted network and restrict access before exposing it to other users.
 
 Useful pages:
 
