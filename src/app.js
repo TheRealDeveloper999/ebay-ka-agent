@@ -7,6 +7,7 @@ const path = require('path');
 const { formatPrice, formatDate, formatCalendarDate, relativeTime, changeTypeLabel, changeTypeBadgeClass, queueStatusLabel, queueStatusBadgeClass } = require('./lib/formatters');
 const { scoreLabel, specLine } = require('./lib/scorer');
 const { isToday } = require('./lib/listing-age');
+const { textDiff } = require('./lib/text-diff');
 
 const DEV = process.env.NODE_ENV !== 'production';
 const app = express();
@@ -24,6 +25,7 @@ env.addGlobal('formatDate', formatDate);
 env.addGlobal('formatCalendarDate', formatCalendarDate);
 env.addGlobal('relativeTime', relativeTime);
 env.addGlobal('isToday', isToday);
+env.addGlobal('textDiff', textDiff);
 env.addGlobal('changeTypeLabel', changeTypeLabel);
 env.addGlobal('changeTypeBadgeClass', changeTypeBadgeClass);
 env.addGlobal('queueStatusLabel', queueStatusLabel);

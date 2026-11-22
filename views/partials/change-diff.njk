@@ -1,0 +1,9 @@
+{% if textDiff and (ch.old_value or ch.new_value) and ch.field_name !== 'price' and ch.change_type !== 'price_drop' and ch.change_type !== 'price_rise' %}
+  <div class="text-diff" aria-label="Text diff">{% for run in textDiff(ch.old_value, ch.new_value, ch.field_name) %}{% if run.type === 'added' %}<ins>{{ run.text }}</ins>{% elif run.type === 'removed' %}<del>{{ run.text }}</del>{% else %}{{ run.text }}{% endif %}{% endfor %}</div>
+{% elif ch.old_value %}
+  <div class="change-diff">
+    <span class="diff-old">{{ ch.old_value }}</span>
+    <span class="diff-arrow">→</span>
+    <span class="diff-new">{{ ch.new_value }}</span>
+  </div>
+{% endif %}

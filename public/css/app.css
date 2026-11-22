@@ -189,6 +189,9 @@ tbody.source-inactive .toggle-btn { opacity: 1; }
 .change-title { text-decoration: none; font-weight: 500; font-size: .9rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .change-title:hover { color: var(--accent); }
 .change-diff { font-size: .8rem; margin-bottom: .3rem; }
+.text-diff { margin: .4rem 0; padding: .35rem .5rem; border: 1px solid var(--border); border-radius: 4px; font-size: .8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.text-diff ins { background: #dcfce7; color: #166534; text-decoration: none; }
+.text-diff del { background: #fee2e2; color: #991b1b; }
 .diff-old { color: var(--red); text-decoration: line-through; }
 .diff-arrow { color: var(--text-muted); margin: 0 .3rem; }
 .diff-new { color: var(--green); font-weight: 600; }
@@ -486,7 +489,7 @@ h1.removed { text-decoration: line-through; color: var(--text-muted); }
 .timeline-dot.badge-price-rise  { background: var(--red); }
 .timeline-dot.badge-changed     { background: var(--orange); }
 .timeline-dot.badge-removed     { background: var(--text-muted); }
-.timeline-content { flex: 1; }
+.timeline-content { flex: 1; min-width: 0; }
 .timeline-time { display: block; font-size: .75rem; color: var(--text-muted); margin-top: .25rem; }
 
 .snapshots-detail { margin-top: 1rem; font-size: .85rem; }

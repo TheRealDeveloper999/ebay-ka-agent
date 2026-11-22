@@ -39,6 +39,7 @@ function changeTypeLabel(type) {
     price_rise: 'Price rise',
     title_changed: 'Title changed',
     description_changed: 'Description changed',
+    location_changed: 'Location details changed',
     removed: 'Removed',
     relisted: 'Relisted',
   };

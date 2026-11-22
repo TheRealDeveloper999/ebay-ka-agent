@@ -142,13 +142,7 @@
             <div class="timeline-dot {{ changeTypeBadgeClass(ch.change_type) }}"></div>
             <div class="timeline-content">
               <span class="badge {{ changeTypeBadgeClass(ch.change_type) }}">{{ changeTypeLabel(ch.change_type) }}</span>
-              {% if ch.old_value %}
-                <div class="change-diff">
-                  <span class="diff-old">{{ ch.old_value }}</span>
-                  <span class="diff-arrow">→</span>
-                  <span class="diff-new">{{ ch.new_value }}</span>
-                </div>
-              {% endif %}
+              {% include "partials/change-diff.njk" %}
               <time class="timeline-time">{{ formatDate(ch.detected_at) }}</time>
             </div>
           </div>

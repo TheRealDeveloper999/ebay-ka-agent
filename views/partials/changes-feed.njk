@@ -12,13 +12,7 @@
             <span class="badge {{ changeTypeBadgeClass(ch.change_type) }}">{{ changeTypeLabel(ch.change_type) }}</span>
             <a class="change-title" href="/items/{{ ch.item_id }}">{{ ch.title }}</a>
           </div>
-          {% if ch.field_name and ch.old_value %}
-            <div class="change-diff">
-              <span class="diff-old">{{ ch.old_value }}</span>
-              <span class="diff-arrow">→</span>
-              <span class="diff-new">{{ ch.new_value }}</span>
-            </div>
-          {% endif %}
+          {% include "partials/change-diff.njk" %}
           <div class="change-meta">
             {% if ch.source_name %}<span>{{ ch.source_name }}</span>{% endif %}
             <time>{{ relativeTime(ch.detected_at) }}</time>
