@@ -1,12 +1,7 @@
 <tbody id="source-group-{{ source.id }}" class="{{ 'source-inactive' if not source.active }}">
   <tr>
     <td data-label="Name">
-      <span class="source-name-cell">
-        <strong>{{ source.name }}</strong>
-        {% if source.last_error %}
-          <div class="source-error">{{ source.last_error }}</div>
-        {% endif %}
-      </span>
+      <strong>{{ source.name }}</strong>
     </td>
     <td data-label="URL">
       <a href="{{ source.url }}" target="_blank" class="url-truncate">{{ source.url }}</a>
@@ -43,7 +38,11 @@
   </tr>
   <tr class="source-status-row">
     <td colspan="6">
-      <div id="scrape-status-{{ source.id }}" class="scrape-status-cell"></div>
+      <div id="scrape-status-{{ source.id }}" class="scrape-status-cell">
+        {% if source.last_error %}
+          <span class="scrape-result scrape-result--error">Error: {{ source.last_error }}</span>
+        {% endif %}
+      </div>
     </td>
   </tr>
 </tbody>
