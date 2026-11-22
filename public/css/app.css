@@ -714,13 +714,13 @@ canvas#queue-graph { display: block; width: 100%; border-radius: var(--radius); 
     word-break: break-all;
     max-width: none;
   }
-  .sources-table td.actions {
+  .sources-table .actions {
     flex-wrap: wrap;
     white-space: normal;
     align-items: center;
     gap: .4rem;
   }
-  .sources-table td.actions::before { display: none; }
+  .sources-table .source-actions-cell::before { display: none; }
   .sources-table .source-status-row td {
     padding: 0;
     border-bottom: none;
